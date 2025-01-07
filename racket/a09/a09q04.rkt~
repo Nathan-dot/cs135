@@ -1,0 +1,26 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname a09q04) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 09, Problem 4
+;; ***************************************************
+
+;; (integrate func intervals) consumes a function [func] and
+;;   a positive number of intervals [intervals]. It produces
+;;   a function g(a, b) that produces an approximation of the
+;;   integral of f(x) between a and b using a trapezoidal
+;;   Riemann sum.
+
+(define (integrate func intervals)
+  (lambda (a b)
+    (local [(define (create-interval a b distance limit)
+              (cond [(>= a limit) 0]
+                    [else (+ (* (- b a) (/ (+ (func a) (func b)) 2))
+                             (create-interval b (+ b distance) distance limit))]))]
+      (create-interval a (+ a (/ (- b a) intervals)) (/ (- b a) intervals) b))))
+
+(define i_x^2+3 (integrate (lambda (x) (+ (sqr x) 3)) 2))
+(check-expect (i_x^2+3 1 2) (+ 2.3125 3.0625))
+(check-expect (i_x^2+3 3 7) (+ 40 80))

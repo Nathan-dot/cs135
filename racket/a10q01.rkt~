@@ -1,0 +1,12 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname a10q01) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(define (raise-to-power exp lon)
+  (foldr (lambda (x y)
+                       (cond [(empty? y) x] 
+                             [else (list (expt x exp)
+                                         (expt y exp))])) empty lon))     
+
+(raise-to-power 3 (list 5 -2))
+
+(foldl cons '() '(1 2 3 4))

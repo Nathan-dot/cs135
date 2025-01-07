@@ -1,0 +1,24 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname a09q02-local) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 09, Problem 2
+;; ***************************************************
+
+(require "a09q02-filter.rkt")
+
+
+;; b.)
+;; (ruthless symbols-nlst) produces a version of [symbols-nlst]
+;;    where all instances of 'ruth have been removed.
+
+(define (ruthless symbols-nlst)
+  (local [(define (ruth? sym)
+            (cond [(symbol=? sym 'ruth) true]
+                  [else false]))]
+    (filter-nlst (ruth?) symbols-nlst)))
+
+(check-expect (ruthless '(rabbit (apple pluto (ruth blue) ruth) hello))
+              '(rabbit (apple pluto (blue)) hello))

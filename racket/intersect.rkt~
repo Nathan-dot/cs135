@@ -1,0 +1,105 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname intersect) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(define vegetable-plot
+  (list (list 'cauliflower (list 'broccoli))
+        (list 'broccoli (list 'cauliflower 'kale))
+        (list 'kale (list 'cabbage 'broccoli 'rapini 'turnip 'tatsoi))
+        (list 'cabbage (list 'kale))
+        (list 'rapini (list 'kale 'turnip 'tatsoi))
+        (list 'turnip (list 'kale 'rapini 'tatsoi 'kohlrabi))
+        (list 'tatsoi (list 'kale 'rapini 'turnip 'mizuna))
+        (list 'kohlrabi (list 'turnip 'cucumber))
+        (list 'cucumber (list 'kohlrabi 'watermelon 'zucchini))
+        (list 'zucchini (list 'cucumber 'watermelon))
+        (list 'watermelon (list 'cucumber 'zucchini 'cantaloupe))
+        (list 'cantaloupe (list 'watermelon 'squash))
+        (list 'squash (list 'cantaloupe 'pumpkin))
+        (list 'pumpkin (list 'squash))
+        (list 'eggplant (list 'potato 'pepper))
+        (list 'potato (list 'eggplant 'pepper))
+        (list 'pepper (list 'tomato 'potato 'eggplant))
+        (list 'tomato (list 'pepper))))
+
+(find-clique 'potato 'pepper vegetable-plot)
+
+(define (find-clique k ugraph)
+  (map (lambda (x) (cond [(< (length (second x)) (sub1 k)) 0]
+                         [(and (= (sub1 k) (length (second x)))
+                               (clique? (append (list (first x)) (second x)) ugraph))
+                          (list (list (first x)) (second x))]
+                         [(= (sub1 k) (length (second x))) 0]
+                         [else (intersection k (first x) (second x) ugraph)])) ugraph))
+
+;; finding how many possible cliques - if one is in the intersection, it is guaranteed part
+;; of the clique of length 3. If the intersection is not of length k-2, we move on. If it is,
+;; we must check each member by intersecting our previous intersected list with each one.
+;; Each new intersected list should be length k-1 and if this is true, we have a clique of k
+;; and we can intersect any two lists and add the list-owner's names to them.
+
+(list 'eggplant (list 'potato 'pepper 'square))
+        (list 'potato (list 'eggplant 'pepper 'square))
+        (list 'pepper (list 'tomato 'potato 'eggplant 'square))
+        (list 'square (list 'eggplant 'potato 'pepper))
+('pepper, 'square)
+(list 'tomato 'potato 'eggplant 'square)
+('square)
+        
+(define (intersection k name list1 ugraph)
+  (local [(define intersected-list (intersect
+                  (second (first (filter (lambda (x)
+                                           (symbol=? (first x) name)) ugraph))) list1))]
+      (cond [(empty? intersected-list) 0]
+            [(< (length intersected-list) (- k 2)) 0]
+            [(= (length intersected-list) (- k 2)) (+ k 2)]
+        [else (intersection k (first intersected-list) intersected-list ugraph)])))
+
+
+(define (intersect list1 list2)
+  (cond
+    [(empty? list1) empty]
+    [(member? (first list1) list2)    
+     (cons (first list1)
+           (intersect (rest list1) list2))]
+    [else (intersect (rest list1) list2)]))  
+
+(intersect (list 'a 'b 'c 'd) (list 'c 'd 'e 'f)) 
+
+(define (clique? nodes ugraph)
+  (cond [(< (length nodes) 2) true]
+        [else (search-nodes nodes ugraph)]))
+
+(define (search-nodes nodes ugraph)
+  (cond [(empty? nodes) true]
+        [(member? (- (length nodes) 1) (map (lambda (x) 
+         (cond [(symbol=? (first nodes) (first x))
+                     (foldr + 0 (map (lambda (y) (cond [(member? y nodes) 1]
+                                            [else 0])) (second x)))]
+               [else 0])) ugraph)) (search-nodes (rest nodes) ugraph)]
+        [else false]))
+
+#|
+(define (find-clique/list nbrs dest g visited)
+  (cond [(empty? nbrs) false]
+        [(member? (first nbrs) visited)
+         (find-clique/list (rest nbrs) dest g visited)]
+        [else (local [(define ?path (find-clique/acc (first nbrs) dest g visited))]
+                (cond [(false? ?path)
+                       (find-clique/list (rest nbrs) dest g visited)]
+                      [else ?path]))]))
+
+
+
+(define (find-clique/acc orig dest g visited)
+  (local [(define nbrs (neighbours orig g))
+                      (define ?path (find-clique/list nbrs dest g
+                                                      (cons orig visited)))]
+                (cond [(false? ?path) false]
+                      [else (cons orig ?path)]))) 
+
+(define (neighbours v g)
+  (second (first (filter (lambda (x) (symbol=? v (first x))) g))))
+
+(define (find-clique orig dest g)
+  (find-clique/acc orig dest g '()))
+|#

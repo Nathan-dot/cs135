@@ -1,0 +1,77 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-reader.ss" "lang")((modname practice) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(define q1 (list 1 (list (list 2) 3) 4))
+
+(length (cons q1 q1))
+
+(first (first (first (rest q1))))
+
+(cons 1 (cons (cons (cons 2 empty) (cons 3 empty)) (cons 4 empty))) 
+#|
+(define (my-quux-fn quux)
+  (cond [(number? quux) ...]
+        [(sym? quux) ...]
+        [(and (quux? quux) (boolean? (quux-bar quux))) ...]
+        [else ...]))
+|#
+
+(define-struct quux (foo bar))
+
+;; Examples:
+(check-expect (sum-quux 5) 5) 
+(check-expect (sum-quux 'sum) 0)
+(check-expect (sum-quux (make-quux false 7)) 7)
+(check-expect (sum-quux (make-quux (make-quux 12 4) (make-quux 3 7))) 26)
+
+;; sum-quux: Quux -> Nat
+(define (sum-quux quux)
+  (cond [(number? quux) quux]
+        [(symbol? quux) 0]
+        [(and (quux? quux) (boolean? (quux-foo quux)))
+         (sum-quux (quux-bar quux))] 
+        [else (+ (sum-quux (quux-foo quux))
+                 (sum-quux (quux-bar quux)))]))
+
+
+;; procession: (listof Str) (listof Str) -> (listof (anyof (list Str Str) (list Str)))
+
+;; empty
+;; (list (list "Dave"))
+;; (list (list "Dave") (list "Mace"))
+
+(define (procession list1 list2)
+  (cond [(and (empty? list1) (empty? list2)) empty]
+        [(and (empty? list1) (list? list2))
+         (cons (list (first list2)) (procession list1 (rest list2)))]
+        [(and (empty? list2) (list? list1))
+         (cons (list (first list1)) (procession (rest list1) list2))]
+        [(string=? (first list1) "Mace")
+         (cons (list (first list1)) (procession (rest list1) list2))]
+        [(string=? (first list2) "Mace")
+         (cons (list (first list2)) (procession list1 (rest list2)))]
+        [else (cons (list (first list1) (first list2)) (procession (rest list1) (rest list2)))]))
+
+(procession empty empty)
+(procession empty (list "david" "charles" "Mace"))
+(procession (list "david" "charles" "Mace") empty)
+(procession (list "david" "charles" "Mace") (list "hellen" "matthew" "keller"))
+(procession (list "hellen" "matthew" "keller") (list "david" "charles" "Mace"))
+
+;; (+ (f 5) 5 (* 5 2))
+;; (+ (* 5 (add1 5)) 5 (* 5 2))
+;; 45
+
+;; (first (rest (self empty)))
+;; (first (rest (cons empty empty)))
+;; Error, (first expects non-empty list)
+
+;;(cond [(s-a q) (s-b q)]
+;;   [else (s-c q)])
+
+;; (cond [(s-a (make-s false x ’fish)) (s-b (make-s false x ’fish))]
+;;    [else (s-c (make-s false x ’fish))])
+
+;; (cond [(false) (s-b (make-s false x ’fish))])
+
+

@@ -1,0 +1,136 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname a03q04) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 03, Problem 4
+;; ***************************************************
+
+;; (lengths-in-order a) produces true if the given list [a]
+;; is organized by string-length from greatest to least or
+;; least to greatest. Otherwise, it produces false.
+
+;; Examples:
+(check-expect
+ (lengths-in-order?
+  (cons "person"
+        (cons "woman"
+              (cons "man"
+                    (cons "camera"
+                          (cons "TV" empty)))))) false)
+(check-expect
+ (lengths-in-order?
+  (cons "person"
+        (cons "woman"
+              (cons "man"
+                    (cons "TV" empty))))) true)
+
+;; lengths-in-order?: (listof Str) -> Bool   
+(define (lengths-in-order? a)
+  (or (helper (helper1 a))
+      (helper (helper1 (helper2 a)))))
+
+;; Tests:
+(check-expect
+ (lengths-in-order?
+  (cons "p"
+        (cons "w"
+              (cons "m"
+                    (cons "c"
+                          (cons "TV" empty)))))) false)
+(check-expect
+ (lengths-in-order?
+  (cons "p"
+        (cons "w"
+              (cons "m"
+                    (cons "c"
+                          (cons "T" empty)))))) false)  
+(check-expect
+ (lengths-in-order?
+  (cons "TV"
+        (cons "man"
+              (cons "woman"
+                    (cons "person"
+                          (cons "camera" empty)))))) false)
+(check-expect
+ (lengths-in-order?
+  (cons "TV"
+        (cons "man"
+              (cons "woman"
+                    (cons "person" empty))))) true)
+(check-expect
+ (lengths-in-order?
+  (cons "TV" empty)) true) 
+
+;; (helper b) produces true if the reverse of given list [b] is organized from
+;; least greatest length to greatest. Otherwise, it produces false.
+
+;; Examples:
+(check-expect (helper (cons 6 (cons 5 (cons 3 (cons 2 empty))))) false)
+(check-expect (helper (cons 2 (cons 3 (cons 5 (cons 6 empty))))) true)
+
+;; helper: (listof Nums) -> Bool
+(define (helper b)
+  (cond
+    [(empty? b) (empty? b)]
+    [(empty? (rest b)) (empty? (rest b))]
+    [(< (first b) (first (rest b)))
+     (helper (rest b))]
+    [else (empty? b)]))
+
+
+;; (helper2 c) produces a reversed version of the given list
+
+;; Examples:
+(check-expect (helper2 (cons "s" (cons "t" empty))) (cons "t" (cons "s" empty)))
+(check-expect (helper2 (cons "person" (cons "woman"  (cons "man" (cons "TV" empty)))))
+              (cons "TV" (cons "man" (cons "woman" (cons "person" empty)))))
+
+;; helper2: (listof Str) -> (listof Str)
+(define (helper2 c)
+  (cond
+    [(empty? c) c]
+    [else (helper3 (first c) (helper2 (rest c)))]))
+   
+
+;; (helper3 d1 d2) produces a new list with [d1]
+;;     as the last element of [d2]
+
+;; Examples:
+(check-expect (helper3 "a" (cons "s" (cons "t" empty))) (cons "s" (cons "t" (cons "a" empty))))
+(check-expect (helper3 "TV" (cons "person" (cons "woman" (cons "man" empty))))
+              (cons "person" (cons "woman" (cons "man" (cons "TV" empty))))) 
+
+;; helper3: Str (listof Str) -> (listof Str) 
+(define (helper3 d1 d2)
+  (cond
+    [(empty? d2) (cons d1 d2)]
+    [else (cons (first d2)
+                (helper3 d1 (rest d2)))]))
+
+
+;; (helper1 e) produces a list with the length of
+;;     each given string
+
+;; Examples:
+(check-expect (helper1 (cons "abcd" (cons "bcde" empty))) (cons 4 (cons 4 empty)))         
+(check-expect (helper1 (cons "33cd" (cons "34cd" empty))) (cons 4 (cons 4 empty))) 
+
+;; helper1: (listof Str) -> (listof Num)
+(define (helper1 e)
+  (cond
+    [(empty? e) e]
+    [else (cons (helper5 (first e))
+                (helper1 (rest e)))]))
+
+
+;; (helper5 f) produces the length of the given string
+
+;; Examples:
+(check-expect (helper5 "abcd") 4) 
+(check-expect (helper5 "33cd") 4)
+
+;; helper5: Str -> Nat
+(define (helper5 f)
+  (length (string->list f)))

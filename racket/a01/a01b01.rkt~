@@ -1,0 +1,54 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname a01b01) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 01, Bonus Question 
+;; ***************************************************
+
+;; (topmarks clickerQ correctQ incorrectQ) consumes
+;; the total amount of clicker questions asked, the number a student
+;; answers correctly, and the number a student answers incorrectly
+;; to calculate their total mark value.
+
+;; Examples:
+(check-expect (topmarks 28 1 26) 22)
+(check-expect (topmarks 28 24 3) 42)
+(check-expect (topmarks 28 0 0) 0)
+
+;; topmarks: Nat Nat Nat -> Num
+;; (Under assumption that at least one clicker question is asked per term)
+
+;; Note: clickerQ is always a positive integer divisible by four
+(define (topmarks clickerQ correctQ incorrectQ)
+  (+ (min (* correctQ 2) (* 0.75 clickerQ 2))
+     (* (min (max (- (* 0.75 clickerQ) correctQ) 0) incorrectQ) 1)))
+
+;; Tests:
+(check-expect (topmarks 28 28 0) 42)
+(check-expect (topmarks 112 34 2) 70)
+(check-expect (topmarks 112 2 34) 38)
+(check-expect (topmarks 28 0 28) 21)
+
+
+;; (cs1110-participation clickerQ correctQ, incorrectQ) consumes
+;; the total amount of clicker questions asked, the number a student
+;; answers correctly, and the number a student answers incorrectly to
+;; calculate the student's grade as percentage 
+;; (using only their best 75% of the clicker questions asked)
+
+;; Examples:
+(check-within (cs1110-participation 28 15 12) 85.71 0.01)
+(check-expect (cs1110-participation 1 0 1) 50)
+
+;; cs1110-participation: Nat Nat Nat -> Num
+
+(define (cs1110-participation clickerQ correctQ incorrectQ)
+  (* (/ (topmarks clickerQ correctQ incorrectQ) (* clickerQ 0.75 2)) 100))
+
+;; Tests:
+(check-within (cs1110-participation 112 53 40) 81.55 0.01)
+(check-within (cs1110-participation 112 0 2) 1.19 0.01)
+
+;; (0.75 * 28) -> 21 - 15 -> 6*1

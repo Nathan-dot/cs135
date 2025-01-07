@@ -1,0 +1,165 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a06b01) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; A Label is a Str
+  
+;; An Outcome is (anyof 'fc 'a 'b), where:
+;; 'fc (the question attempt is correct on the first try before the deadline)
+;; 'a (the question attempt is eventually correct before the deadline)
+;; or 'b (the question was not correctly answered before the deadline)
+  
+(define-struct marked-sc (label outcome))
+;; A MarkedSC is a (make-marked-sc Label Outcome)
+  
+;; A LabelList is a (listof Label)
+;; Requires: every label is unique; the list is sorted in strictly 
+;;   increasing order lexicographically 
+  
+;; A MarkedSCList is a (listof MarkedSC)
+;; Requires: each label across MarkedSCs is unique; the list is sorted in
+;;   strictly increasing order lexicographically by label
+
+
+;; (insert-marked-sc marked-sc sc-list) produces [sc-list] with the element
+;;   [marked-sc] inserted. The element's insertion location in the list is
+;;   determined lexicographically in increasing order by each [marked-sc]'s label.
+;;   If [marked-sc] shares the same label with one already in the list, the element
+;;   is still replaced by it.
+
+;; Examples:
+(check-expect
+ (insert-marked-sc (make-marked-sc "m04_20" 'a)
+                   (list
+                    (make-marked-sc "m03_75" 'fc)
+                    (make-marked-sc "m06_53" 'a)))
+ (list
+  (make-marked-sc "m03_75" 'fc)
+  (make-marked-sc "m04_20" 'a)
+  (make-marked-sc "m06_53" 'a)))
+(check-expect (insert-marked-sc  (make-marked-sc "m03_75" 'fc) empty)
+              (list (make-marked-sc "m03_75" 'fc)))
+
+;; insert-marked-sc: MarkedSC MarkedSCList -> MarkedSCList
+(define (insert-marked-sc marked-sc sc-list)
+  (cond [(empty? sc-list) (cons marked-sc empty)]
+        [(string>? (marked-sc-label (first sc-list)) (marked-sc-label marked-sc))
+         (cons marked-sc sc-list)]
+        [(string=? (marked-sc-label (first sc-list)) (marked-sc-label marked-sc))
+         (cons marked-sc (rest sc-list))]
+        [else (cons (first sc-list) (insert-marked-sc marked-sc (rest sc-list)))]))
+
+
+;; (self-check-grade label-list sc-list) produces the overall self-check grade based on
+;;    the formula from Module 01, Slide 05: 10 * min(1, x/3n + 4y/3n) where n is the total
+;;    number of questions, x is the number of questions attempted and submitted correctly on time
+;;    , and y is the number of on-time submissions where the first answer was correct.
+
+;; Examples:
+(check-expect (self-check-grade
+               (list "m03_75" "m06_53" "m06_128" "m07_72")
+               (list
+                (make-marked-sc "m03_75" 'a)
+                (make-marked-sc "m04_20" 'fc)
+                (make-marked-sc "m06_53" 'b)))
+              5/6)
+      
+;; self-check-grade: LabelList MarkedSCList -> Num
+;; Requires:
+;;   [label-list] must be non-empty
+(define (self-check-grade label-list sc-list)
+  (self-check-formula (length label-list) 
+                      (+ (a-results label-list sc-list 0)
+                         (fc-results label-list sc-list 0)) (fc-results label-list sc-list 0)))
+
+
+;; (self-check-formula n x y) produces the overall self-check grade based on
+;;    the formula from Module 01, Slide 05: 10 * min(1, x/3n + 4y/3n) where n is the total
+;;    number of questions, x is the number of questions attempted and submitted correctly on time
+;;    , and y is the number of on-time submissions where the first answer was correct.
+
+;; Examples:
+(check-expect (self-check-formula 5 2 3) (* 10 14/15))
+(check-expect (self-check-formula 5 0 1) (* 10 4/15))
+(check-expect (self-check-formula 4 1 3) 10)
+
+;; self-check-formula: Nat Nat Nat -> Num
+;; Requires:
+;;    The sum of [x] and [y], which represents the number of questions answered,
+;;    cannot exceed [n], the total number of questions.
+(define (self-check-formula n x y)
+  (* 10 (min 1 (+ (/ x (* 3 n)) (/ (* 4 y) (* 3 n))))))
+
+
+;; (a-results label-list sc-list a-count) produces the amount of attempted
+;;    MarkedSCs that were submitted correctly on time in [sc-list]. [a-count] represents
+;;    the number of valid attempted questions, and in order for it to be considered valid,
+;;    the MarkedSCs' label must appear in [label-list].
+
+;; Examples:
+(check-expect (a-results (list "m03_75" "m06_128" "m06_53" "m07_72")
+                         (list
+                          (make-marked-sc "m03_75" 'a)
+                          (make-marked-sc "m04_20" 'fc)
+                          (make-marked-sc "m06_53" 'b)) 0) 1)
+(check-expect (a-results (list "m03_75" "m06_128" "m06_53" "m07_72")
+                         (list (make-marked-sc "m01_01" 'a)) 0) 0) 
+(check-expect (a-results
+               (list "m03_75" "m06_53" "m06_128" "m07_72" "m11_89" "m12_90" "m13_55")
+               (list
+                (make-marked-sc "m03_75" 'a)
+                (make-marked-sc "m04_20" 'fc)
+                (make-marked-sc "m06_53" 'fc)
+                (make-marked-sc "m07_72" 'a)
+                (make-marked-sc "m11_89" 'a)
+                (make-marked-sc "m12_90" 'a)
+                (make-marked-sc "m13_55" 'a)) 0) 5)
+(check-expect (a-results
+               (list "m03_75" "m06_53" "m06_128" "m07_72" "m11_89" "m12_90" "m13_55") empty 0) 0)
+
+;; a-results: LabelList MarkedSCList Nat -> Nat
+;; Requires:
+;;   [label-list] must be non-empty
+(define (a-results label-list sc-list a-count)
+  (cond [(empty? sc-list) a-count]
+        [(and (symbol=? (marked-sc-outcome (first sc-list)) 'a)
+              (member? (marked-sc-label (first sc-list)) label-list))
+         (a-results label-list (rest sc-list) (+ a-count 1))] 
+        [else (a-results label-list (rest sc-list) a-count)]))
+
+
+;; (fc-results label-list sc-list fc-count) produces the amount of  MarkedSCs that were
+;;    correct first-try and on time in [sc-list]. [fc-count] represents
+;;    the number of valid first-try correct questions, and in order for it to be
+;;    considered valid, the MarkedSCs' label must also appear in [label-list].
+
+;; Examples:
+(check-expect (fc-results (list "m03_75" "m06_128" "m06_53" "m07_72")
+                          (list
+                           (make-marked-sc "m03_75" 'a)
+                           (make-marked-sc "m04_20" 'fc)
+                           (make-marked-sc "m06_53" 'b)) 0) 0)
+(check-expect (fc-results (list "m03_75" "m06_128" "m06_53" "m07_72")
+                          (list (make-marked-sc "m01_01" 'a)) 0) 0) 
+(check-expect (fc-results
+               (list "m03_75" "m06_53" "m06_128" "m07_72" "m11_89" "m12_90" "m13_55")
+               (list
+                (make-marked-sc "m03_75" 'a)
+                (make-marked-sc "m04_20" 'fc)
+                (make-marked-sc "m06_53" 'fc)
+                (make-marked-sc "m07_72" 'a)
+                (make-marked-sc "m11_89" 'a)
+                (make-marked-sc "m12_90" 'a)
+                (make-marked-sc "m13_55" 'a)) 0) 1)
+(check-expect (fc-results
+               (list "m03_75" "m06_53" "m06_128" "m07_72" "m11_89" "m12_90" "m13_55") empty 0) 0)
+
+;; fc-results: LabelList MarkedSCList Nat -> Nat
+;; Requires:
+;;   [label-list] and [sc-list] must be non-empty
+(define (fc-results label-list sc-list fc-count)
+  (cond [(empty? sc-list) fc-count]
+        [(and (symbol=? (marked-sc-outcome (first sc-list)) 'fc)
+              (member? (marked-sc-label (first sc-list)) label-list))
+         (fc-results label-list (rest sc-list) (+ fc-count 1))]
+        [else (fc-results label-list (rest sc-list) fc-count)]))
+

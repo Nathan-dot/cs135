@@ -1,0 +1,27 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname a01q04) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 01, Problem 4
+;; ***************************************************
+
+;; (pressure->loudness sound-pressure) consumes sound-pressure (Pascals)
+;; and produces a loudness measurement in decibels
+
+;; Examples:
+(check-expect (pressure->loudness 0.00002) 0)
+(check-within (pressure->loudness 0.89) 92.97 0.01)
+
+;; pressure->loudness: Num -> Num
+
+(define pressure-ref (* 2 (expt 10 -5)))
+;; reference level pressure that corresponds to human hearing threshold
+
+(define (pressure->loudness sound-pressure)
+  (* 20 (log (/ sound-pressure pressure-ref) 10)))
+
+;; Tests:
+(check-within (pressure->loudness 0.65) 90.24 0.01)
+(check-within (pressure->loudness 0.35) 84.86 0.01)

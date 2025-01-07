@@ -1,0 +1,86 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname a10q03) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 10, Problem 3
+;; ***************************************************
+
+;; 3.)
+;; (find-root f x-neg x-pos tolerance) produces a value x between [x-pos] and [x-neg] inclusively
+;;    such that it is an estimated root of function [f] that adheres to the given [tolerance].
+
+;; Examples:
+
+;; (find-root f x-neg x-pos tolerance): (Num -> Num) Num Num Num -> Num
+;; Requires:
+;;    [tolerance] must be positive.
+;;    The function [f] must be continuous.
+(define (find-root f x-neg x-pos tolerance)
+  (foldr (lambda (x y)
+           ()) empty (list x-neg x-pos)))
+
+;; mid becomes lowerbound when f(x-mid) is negative
+;; otherwise, x-pos becomes lowerbound
+;;(f (/ (+ x-neg x-pos) 2)) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#|
+;; (make-polynomial coefficient-list) consumes a non-empty list of coefficients [coefficient-list]
+;;     and produces a polynomial function with the given coefficients in said list.
+
+;; Examples:
+(check-expect ((make-polynomial '(4)) 0) 4) 
+(check-expect ((make-polynomial '(4)) 8888) 4) 
+(check-expect ((make-polynomial '(1 2)) 0) 1)
+(check-expect ((make-polynomial '(1 2)) 1) 3)
+(check-expect ((make-polynomial '(1 2)) -2) -3)
+
+;; make-polynomial: (listof Num) -> (Num -> Num)
+;; Requires: [coefficient-list] must be non-empty.
+(define (make-polynomial coefficient-list)
+  (lambda (x-values)
+    (local [;; (recurse-polynomial coefficients acc) produces a polynomial, whose
+            ;;    coefficients are represented by [coefficients]. It uses a previous
+            ;;    function's consumed [x-values] to evaluate the polynomial for [x-values].
+            ;; recurse-polynomial: (listof Num) Nat -> Num
+            (define (recurse-polynomial coefficients acc)
+              (cond [(empty? coefficients) 0]
+                    [else (+ (* (first coefficients) (expt x-values acc))
+                             (recurse-polynomial (rest coefficients) (add1 acc)))]))]
+      (recurse-polynomial coefficient-list 0))))
+
+;; Tests:
+(check-expect ((make-polynomial '(5 15 -3 -8 95)) 1) (+ 5 15 -3 -8 95))
+(check-expect ((make-polynomial '(-12 -4 -3 -7 -1)) -2) 24)
+(check-within ((make-polynomial '(3/4 2/5 12/7 1/3 -4/3 -5/7)) -1)
+              (+ 3/4 -2/5 12/7 -1/3 -4/3 5/7) 0.01)
+(check-expect ((make-polynomial '(-1.1 2.6 9.8 -0.2 3.4)) 2) 96.1)
+(check-expect ((make-polynomial '(0 0 0 0 0 0 0 0 0 0 )) -124) 0)
+(check-within ((make-polynomial '(1.1 -2 55 4/9)) 1) (+ 1.1 -2 55 4/9) 0.01)
+(check-expect ((make-polynomial '(1 2 3 4 5 6 7 8 9 10 11 12 13 14)) 1) 105)
+(check-expect ((make-polynomial '(-1 2 -3 4 -5 6 -7 8 -9 10)) -2) -9217)
+(check-expect ((make-polynomial '(1 1 1 1 1)) 4) 341)
+(check-expect ((make-polynomial '(-1 -2)) 31) -63)
+(check-expect ((make-polynomial '(1 2 19 8)) -215) -78629154)
+|#

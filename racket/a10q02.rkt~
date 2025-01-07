@@ -1,0 +1,285 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname a10q01) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 10, Problem 2
+;; ***************************************************
+
+;; a.)
+;; (raise-to-power exp lon) consumes an integer [exp], which represents the exponent,
+;;   and a list of numbers [lon]. This function produces the list of numbers where
+;;   each element has been raised to the power of [exp].
+
+;; Examples:
+(check-expect (raise-to-power 3 (list 5 -2)) (list 125 -8))
+(check-expect (raise-to-power 1 (list 1 2 3 4 5 6 7 8 9))
+              (list 1 2 3 4 5 6 7 8 9))
+
+;; raise-to-power: Int (listof Num) -> (listof Num)
+(define (raise-to-power exp lon)
+  (foldr (lambda (x y) (cons (expt x exp) y)) empty lon))
+
+;; Tests:
+(check-expect (raise-to-power 0 (list 78 192 1 9 0 12))
+              (list 1 1 1 1 1 1))
+(check-expect
+ (raise-to-power 2 (list 5 -2))
+ (list 25 4))
+(check-expect
+ (raise-to-power -1 (list 5 -2))
+ (list (/ 1 5) (/ 1 -2)))
+(check-expect
+ (raise-to-power -2 (list 5 -2))
+ (list (/ 1 25) (/ 1 4)))
+(check-expect
+ (raise-to-power 15 (list 5 -2))
+ (list (expt 5 15) (expt -2 15)))
+(check-expect (raise-to-power 5 empty) empty)
+(check-expect (raise-to-power 2 (list 2)) (list 4))
+(check-expect (raise-to-power 4 (cons 4 empty)) (cons 256 empty))
+(check-expect (raise-to-power 0 (cons 12345 (cons -2345 (cons 1 empty))))
+              (cons 1 (cons 1 (cons 1 empty))))
+(check-expect (raise-to-power 1 (cons 237 (cons -23 (cons 2 empty))))
+              (cons 237 (cons -23 (cons 2 empty))))
+(check-expect (raise-to-power 2 (cons -6 (cons 0 (cons 15 (cons 11 empty)))))
+              (cons 36 (cons 0 (cons 225 (cons 121 empty)))))
+(check-expect (raise-to-power 3 (cons -8 (cons 10 (cons 1 empty))))
+              (cons -512 (cons 1000 (cons 1 empty))))
+(check-expect (raise-to-power -4 (cons -6 (cons 3 (cons 5 empty))))
+              (cons 1/1296 (cons 1/81 (cons 1/625 empty))))
+(check-expect (raise-to-power 2 '(2.25 -5.5))
+              (list (expt 2.25 2) (expt -5.5 2)))
+
+
+;; b.)
+;; (count-in-range num1 num2 lon) produces the number of elements
+;;    in [lon] that are greater than or equal to the given [num1]
+;;    and less than or equal to the given [num2].
+
+;; Examples:
+(check-expect 
+ (count-in-range 7.3 12 
+                 (cons -4 (cons 11 (cons 109 (cons 7.3 empty))))) 2) 
+(check-expect  
+ (count-in-range 12 12 
+                 (cons 12 (cons 0 (cons 109 (cons 7.3 empty))))) 1)
+
+;; count-in-range: Num Num (listof Num) -> Nat
+(define (count-in-range num1 num2 lon)
+  (length (filter (lambda (x) (and (>= x num1) (<= x num2))) lon)))
+
+;; Tests:
+(check-expect  
+ (count-in-range -5 0 
+                 (cons -4 (cons 0 (cons -2 (cons 7.3 empty))))) 3)
+(check-expect  
+ (count-in-range -5 0 
+                 (cons 12 (cons 1 (cons 11 (cons 7.3 empty))))) 0)
+(check-expect  
+ (count-in-range -5 0 
+                 (cons -2 empty)) 1)
+(check-expect (count-in-range 0 2 empty) 0)
+(check-expect (count-in-range 0 3 (cons 1 empty)) 1)
+(check-expect (count-in-range 0 1 (cons 0.9 empty)) 1)
+(check-expect (count-in-range -1 0 (cons 0.9 empty)) 0)
+(check-expect (count-in-range
+               -5 8 (cons -6 (cons 14 (cons -678 (cons 250 empty))))) 0)
+(check-expect (count-in-range
+               -2.5 2.5 (cons -2.5 (cons 2.5 (cons 0 (cons 67 empty))))) 3)
+(check-expect  
+ (count-in-range 105 12 
+                 (cons 12 (cons 0 (cons 109 (cons 7.3 empty))))) 0)
+
+
+;; c.)
+;; (arithmetic-sequence? num-list) produces true if the given list
+;;     represents an arithmetic sequence. Otherwise, it produces false.
+
+;; Examples:
+(check-expect 
+ (arithmetic-sequence? (cons 3 (cons 6 (cons 9 empty)))) true)
+(check-expect 
+ (arithmetic-sequence? (cons 6 (cons 3 (cons 12 empty)))) false)
+
+;; arithmetic-sequence?: (listof Num) -> Bool
+(define (arithmetic-sequence? num-list)
+  (cond [(or (empty? num-list) (= (length num-list) 1)) true]
+        [(= (foldr + 0 (foldr (lambda (x y z) (cons (- y x) z)) empty 
+                              (build-list (length num-list)
+                                          (lambda (x) (+ (first num-list)
+                                                         (* x (- (second num-list)
+                                                                 (first num-list))))))
+                              num-list)) 0) true]
+        [else false]))
+
+;; Tests:
+(check-expect 
+ (arithmetic-sequence? (cons 4 (cons 8 (cons 12 (cons 11 empty))))) false)
+(check-expect 
+ (arithmetic-sequence? (cons 4 (cons 8
+                                     (cons 12 (cons 16 (cons 20 empty)))))) true)
+(check-expect 
+ (arithmetic-sequence? (cons 4 empty)) true)
+(check-expect 
+ (arithmetic-sequence? (cons 4 (cons 4 empty))) true)
+(check-expect (arithmetic-sequence? empty) true)
+(check-expect (arithmetic-sequence? (cons 5 empty)) true)
+(check-expect (arithmetic-sequence? (cons 15 (cons 1023 empty))) true)
+(check-expect (arithmetic-sequence? (cons 2 (cons -591 empty))) true)
+(check-expect (arithmetic-sequence? (cons -4 (cons 6 (cons 16 empty)))) true)
+(check-expect (arithmetic-sequence? (cons -4 (cons 6 (cons 18 empty)))) false)
+(check-expect (arithmetic-sequence? (cons 15 (cons 19 (cons 25 empty)))) false)
+(check-expect (arithmetic-sequence? (cons -6 (cons -14 (cons 19 empty)))) false)
+(check-expect
+ (arithmetic-sequence?
+  (cons -10 (cons 0 (cons 10 (cons 20 (cons 30 (cons 40 empty))))))) true)
+(check-expect
+ (arithmetic-sequence?
+  (cons -5 (cons 0 (cons 5 (cons -10 (cons 15 (cons 20 empty))))))) false)
+(check-expect
+ (arithmetic-sequence?
+  (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 empty))))))) true)
+(check-expect
+ (arithmetic-sequence?
+  (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 (cons 2 empty))))))) false)
+(check-expect
+ (arithmetic-sequence?
+  (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 empty))))))) true)
+(check-expect
+ (arithmetic-sequence?
+  (cons -500 (cons -400 (cons -300 (cons -200 (cons -100 (cons 0 empty))))))) true)
+
+
+;; d.)
+;; (offsets num-list) subtracts each element in the consumed list [num-list]
+;;     by the given list's smallest element and produces each element's
+;;     result in a new list.
+
+;; Examples:
+(check-expect 
+ (offsets (cons 14 (cons 3 (cons 16.4 (cons 3 empty)))))
+ (cons 11 (cons 0 (cons 13.4 (cons 0 empty)))))
+(check-expect 
+ (offsets (cons 14 (cons 3 (cons 16.4 (cons 3 empty)))))
+ (cons 11 (cons 0 (cons 13.4 (cons 0 empty)))))
+
+;; offsets: (listof Num) -> (listof Num)
+;; Requires: offsets must be a non-empty list of numbers
+(define (offsets num-list)
+  (map (lambda (x)
+         (- x (first (quicksort num-list <)))) num-list))
+
+;; Tests:
+(check-expect 
+ (offsets (cons 14 (cons 3 (cons 16.4 (cons 0 empty)))))
+ (cons 14 (cons 3 (cons 16.4 (cons 0 empty)))))
+(check-expect 
+ (offsets (cons 14 (cons 3 (cons -12 (cons -9 empty)))))
+ (cons 26 (cons 15 (cons 0 (cons 3 empty)))))
+(check-expect (offsets
+               (cons 14 empty)) (cons 0 empty))
+(check-expect 
+ (offsets (cons 14 (cons 21 (cons 16.4 (cons 15 empty)))))
+ (cons 0 (cons 7 (cons 2.4 (cons 1 empty)))))
+(check-expect 
+ (offsets (cons 14 (cons 14 (cons 14 (cons 14 empty)))))
+ (cons 0 (cons 0 (cons 0 (cons 0 empty)))))
+(check-expect (offsets (cons 6 empty)) (cons 0 empty))
+(check-expect (offsets (cons -50.32 empty)) (cons 0 empty))
+(check-expect 
+ (offsets (cons 50 (cons 0.002 (cons 18 (cons 3.002 empty)))))
+ (cons 49.998 (cons 0 (cons 17.998 (cons 3 empty)))))
+(check-expect
+ (offsets (cons 0.001 (cons 0 (cons 0.0001 (cons -2 (cons -10 (cons 3 empty)))))))
+ (cons 10.001 (cons 10 (cons 10.0001 (cons 8 (cons 0 (cons 13 empty)))))))
+
+
+;; e.)
+;; (self-check-mark question-results) produces a student's self-check mark
+;;     based on the formula (10 * min(1, x/3n + 4y/3n)), where
+;;     n is the total number of questions; x is the number of questions
+;;     submitted correctly on time; and y is the number of questions submitted
+;;     on time where the first answer was correct. The three variables
+;;     mentioned depend on the student's performance as reported in [question-results].
+
+;; Examples:
+(check-expect
+ (self-check-mark
+  (cons 'b (cons 'fc (cons 'a (cons 'a (cons 'fc (cons 'b empty)))))))
+ (+ 6 2/3)) 
+
+;; self-check-mark: (listof Sym) -> Num
+;; Requires:
+;;    The list question-results is non-empty
+;;    Each symbol is the list is one of: 'fc, 'a, or 'b
+(define (self-check-mark question-results)
+  (local
+    [(define y (length (filter (lambda (x) (symbol=? x 'fc)) question-results)))
+     (define x (length (filter (lambda (x) (or (symbol=? x 'a)
+                                               (symbol=? x 'fc))) question-results))) 
+     (define n (length question-results))]
+    (* 10 (min 1 (/ (+ x (* 4 y)) (* 3 n))))))
+
+;; Tests:
+(check-expect
+ (self-check-mark
+  (cons 'b (cons 'b (cons 'b (cons 'b (cons 'b (cons 'b empty))))))) 0)
+(check-expect
+ (self-check-mark
+  (cons 'b (cons 'fc (cons 'fc (cons 'fc (cons 'fc (cons 'b empty))))))) 10)
+(check-expect
+ (self-check-mark
+  (cons 'b (cons 'fc (cons 'fc (cons 'a (cons 'fc (cons 'b empty)))))))
+ (+ 8 16/18))
+(check-expect (self-check-mark (cons 'b empty)) 0)
+(check-expect (self-check-mark (cons 'fc empty)) 10)
+(check-expect (self-check-mark (cons 'a empty)) (+ 3 1/3))
+(check-expect (self-check-mark (cons 'a (cons 'a empty))) (+ 3 1/3))
+(check-expect (self-check-mark (cons 'a (cons 'a (cons 'a (cons 'a empty)))))
+              (+ 3 1/3))
+(check-expect
+ (self-check-mark (cons 'a (cons 'a (cons 'a (cons 'a (cons 'b (cons 'b empty))))))) (+ 2 2/9))
+(check-expect (self-check-mark (cons 'fc (cons 'a (cons 'fc (cons 'a empty))))) 10)
+(check-expect
+ (self-check-mark (cons 'fc (cons 'a (cons 'fc (cons 'a (cons 'fc (cons 'a empty))))))) 10)
+(check-within (self-check-mark (cons 'a (cons 'fc (cons 'b (cons 'fc empty))))) 9.17 0.01)
+(check-expect (self-check-mark (cons 'a (cons 'fc (cons 'b (cons 'fc (cons 'fc empty)))))) 10)
+(check-within (self-check-mark
+               (cons 'a (cons 'b
+                              (cons 'b (cons 'fc
+                                             (cons 'b (cons 'a
+                                                            (cons 'fc (cons 'a
+                                                                            (cons 'b empty))))))))))
+              4.81 0.01)
+
+
+;; f.)
+;; (compute-left-right op list1) produces the results of pairwise computing op on elements
+;;    from left to right in the list.
+
+;; Examples:
+(define weird-mult (lambda (x y) (* (add1 x) y)))
+(check-expect (compute-left-right weird-mult (list 9 2 3)) 63)
+(check-expect (compute-left-right weird-mult (list 4)) 4)
+(check-expect (compute-left-right string-append
+                                  (list "h" "e" "l" "l" "o"))
+              "hello")
+
+;; compute-left-right: (X X -> X) (listof X) -> X
+;; Requires: [list1] must be non-empty
+(define (compute-left-right op list1)
+  (foldl (lambda (list2 acc) (cond [(empty? acc) list2]
+                                   [else (op acc list2)])) empty list1))
+
+;; Tests:
+(check-expect (compute-left-right min (list 12 8 2 9 3 4)) 2)
+(define weird-mult1 (lambda (x y) (cond [(symbol=? x y) y]
+                                        [else x])))
+(check-expect (compute-left-right weird-mult1 (list 'a 'a 'b 'c 'd)) 'a)
+(check-expect (compute-left-right weird-mult1 (list 'b 'a 'b 'c 'd)) 'b)
+(check-expect (compute-left-right weird-mult1 (list 'a)) 'a)
+
+
+

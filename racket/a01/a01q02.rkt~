@@ -1,0 +1,72 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname a01q02) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 01, Problem 2
+;; ***************************************************
+
+;; a.)
+;; (reaction-distance pr-time speed) consumes the perception-reaction time in seconds
+;; and the car's speed in kilometers per hour to produce the distance a moving vehicle
+;; travels during the perception-reaction time
+;; pr-time > 0, speed >= 0
+
+;; Examples:
+(check-expect (reaction-distance 60 1.3) 21.684)
+(check-expect (reaction-distance 45 1.5) 18.765)
+
+;; reaction-distance: Num Num -> Num
+
+(define (reaction-distance pr-time speed)
+  (* 0.278 pr-time speed)) ;0.278 is a reaction-distance coefficient
+
+;; Tests:
+(check-expect (reaction-distance 53 6.0) 88.404)
+(check-expect (reaction-distance 45 0) 0)
+(check-expect (reaction-distance 1.5 60) 25.02)
+
+;; b.)
+;; (braking-distance speed slope friction) consumes a vehicle's speed in kilometer per hour, the
+;; slope of the road, and the coefficient of friction between the vehicle's tires
+;; and the road to calculate the distance needed for moving vehicle to stop after braking
+;; (s+f) > 0
+;; Helper Function for stopping-distance
+
+
+;; Examples:
+(check-within (braking-distance 45 0 0.7) 11.39 0.01)
+(check-within (braking-distance 25 1.2 0.3) 1.64 0.01)
+
+
+;; braking-distance: Num Num Num -> Num
+
+(define dry-friction 0.7)
+(define wet-friction 0.5)
+(define icy-friction 0.3)
+;; these are the coefficient of friction values for dry, wet, and icy roads respectively
+
+(define (braking-distance speed slope friction)
+  (/ (expt speed 2) (* 254 (+ friction slope))))
+
+;; Tests:
+(check-within (braking-distance 45 -1.1 wet-friction) -13.29 0.01)
+(check-within (braking-distance 25 4.3 wet-friction)  0.51 0.01)
+
+;; (stopping-distance speed pr-time slope friction) consumes the vehicle's speed, perception-reaction time
+;; , slope of the road, and the friction coefficient respectively
+
+;; Examples:
+(check-within (stopping-distance 120 2 1 0.4) 107.21 0.01)
+(check-within (stopping-distance 45 4.4 3 icy-friction) 57.46 0.01)
+
+;; stopping-distance: Num, Num, Num, Num -> Num 
+
+(define (stopping-distance speed pr-time slope friction)
+  (+ (braking-distance speed slope friction) (reaction-distance pr-time speed)))
+
+;; Tests:
+(check-within (stopping-distance 83 5 2.1 wet-friction) 125.80 0.01)
+(check-within (stopping-distance 23 3.4 2 dry-friction) 22.51 0.01)
+

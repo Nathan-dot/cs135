@@ -1,0 +1,51 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a07q01) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; An alternate arithmetic expression (AltAExp) is one of:
+;; * Num
+;; * Sym
+;; * OpNode
+  
+(define-struct opnode (op args))
+;; An operator node (OpNode) is a 
+;; (make-opnode (anyof '* '+ '- '/ '^) (listof AltAExp))
+;; Requires:
+;;    [opnode-args] cannot contain 0 if [opnode-op], which represents
+;;    the operator, is '/ as a division by zero error will occur
+
+
+;; b.)
+;; A ConstantTable is a (listof (list Sym Num))
+;; Requires: every symbol is unique
+
+(define table-of-constants 
+  (list (list 'euler-constant 2.71828)
+        (list 'x 848)
+        (list 'y 377)
+        (list 'z 222)
+        (list 'pi 3.14159)
+        (list 'phi 1.61803)
+        (list 'planks-constant  (* 6.626068 (expt 10 (- 0 34))))        
+        (list 'boltzmann-constant (* 1.380650 (expt 10 23)))))
+
+
+;; (lookup-symbol constant-table symbol) produces the numeric value of [symbol]
+;;    as given in [constant-table]. If it is not located in [constant-table],
+;;    the function produces false.
+
+;; Examples:
+(check-expect (lookup-symbol table-of-constants 'phi) 1.61803)
+(check-expect (lookup-symbol table-of-constants 'p) false)
+
+(define (lookup-symbol constant-table symbol)
+  (cond [(empty? constant-table) false]
+        [(symbol=? (first (first constant-table)) symbol) (second (first constant-table))]
+        [else (lookup-symbol (rest constant-table) symbol)]))
+
+;; Tests:
+(check-expect (lookup-symbol table-of-constants 'euler-constant) 2.71828)
+(check-expect (lookup-symbol table-of-constants 'boltzmann-constant) (* 1.380650 (expt 10 23)))
+(check-expect (lookup-symbol empty 'p) false)
+
+
+;; c.)

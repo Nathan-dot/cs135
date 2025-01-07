@@ -1,0 +1,25 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname a11q01) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 11, Problem 1
+;; ***************************************************
+
+;; A Graph is a (listof X) where X is a two element list (a “pair”):
+;; (list v (list w_1 ... w_n)). Each pair contains a node name
+;; (a symbol) and a list of out-neighbours (a list of symbols).
+
+;; An undirected graph (UGraph) is a graph G such 
+;; that for any two nodes u and v in G, if there 
+;; is an edge from u to v, there is also an edge from 
+;; v to u.
+
+;; a.)
+;; (directed->undirected dgraph) produces the corresponding
+;;    undirected graph to the given [dgraph].
+
+;; Examples:
+
+;; directed->undirected: Graph -> UGraph

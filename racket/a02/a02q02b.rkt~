@@ -1,0 +1,36 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname a02q02b) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 02, Problem 2B
+;; ***************************************************
+
+;; b.)
+;; (roadmap-step currentStep oneDose twoDose daySinceStep outbreak?) produces true if the province
+;; is ready to progress into the next step, and false otherwise. The province's readiness
+;; relies on [oneDose], the % of people with one vaccine, [twoDose], the % of people with two,
+;; [daySinceStep], the number of days since the province moved into the current step,
+;; and [outbreak?], the province's indicator if there is an outbreak.
+
+;; Examples:
+(check-expect (ready-for-next-step? 'step1 20 100 20 false) false)
+(check-expect (ready-for-next-step? 'step0 65 30 20 false) true)
+(check-expect (ready-for-next-step? 'step1 75 100 25 false) false)
+
+;; ready-for-next-step?: Sym Nat Nat Nat Bool -> Sym
+;; oneDose and twoDose are natural numbers less than 100 and
+;; currentStep can only be one of the following symbols: 'step0, 'step1, 'step2, 'step3
+ 
+(define (ready-for-next-step? currentStep oneDose twoDose daySinceStep outbreak?)
+  (and (not outbreak?) (not (equal? currentStep 'step3)) (<= twoDose oneDose)
+       (or (and (equal? currentStep 'step0) (>= oneDose 60))
+           (and (equal? currentStep 'step1) (>= oneDose 70) (>= twoDose 20) (>= daySinceStep 21))
+           (and (equal? currentStep 'step2) (>= oneDose 80) (>= twoDose 25) (>= daySinceStep 21)))))
+
+;; Tests:
+(check-expect (ready-for-next-step? 'step1 55 95 20 true) false)
+(check-expect (ready-for-next-step? 'step1 79 22 22 false) true)  
+(check-expect (ready-for-next-step? 'step2 12 18 22 false) false)
+(check-expect (ready-for-next-step? 'step2 100 75 25 false) true)  

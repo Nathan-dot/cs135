@@ -1,0 +1,57 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-reader.ss" "lang")((modname playground) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(define-struct file (name size owner))
+;; A File is a (make-file Str Nat Sym)
+
+(define-struct dir (name owner contents))
+;; A Dir is a (make-dir Str Sym (listof FileSystem))
+
+(define example-fs
+  (make-dir "root" 'root
+            (list
+             (make-dir "Dan" 'dan
+                       (list (make-file "log.txt" 814 'dan)
+                             (make-file "profile.jpg" 60922 'dan)
+                             (make-dir "music" 'dan
+                                       (list (make-file "Thelonius Monk.mp3" 92227584 'dan)))))
+             (make-dir "Slides" 'teaching
+                       (list (make-dir "cs135" 'teaching
+                                       (list (make-file "01-intro.pdf" 72244 'teaching)
+                                             (make-file "11-trees.pdf" 123124 'teaching)
+                                             (make-dir "system" 'root
+                                                       (list (make-dir "logs" 'teaching empty)))))))
+             (make-file "vmlinuz" 30 'root))))
+
+(dir-contents example-fs)
+
+#|
+
+(define (remove-empty file-system)
+  (cond [(empty? file-system) empty]
+        [(file? file-system) file-system]
+        [(empty? (dir-contents file-system)) empty]
+        [else (produce-tree file-system (dir-contents file-system))]))  
+ 
+(define (produce-tree file-system contents)
+  (cond [(empty? (dir-contents file-system)) empty]
+        [(empty? (rest (dir-contents file-system))) empty] 
+        [else (cons (make-dir (dir-name file-system)
+                              (dir-owner file-system)
+                              (first (dir-contents file-system)))
+                    (remove-empty (make-dir (dir-name file-system) 
+                                      (dir-owner file-system)
+                                      (rest (dir-contents file-system)))))]))
+|#
+
+(define (remove-empty file-system)
+  (cond [(empty? file-system) empty]
+        [(file? file-system) file-system]  
+        [(empty? (dir-contents file-system)) empty]
+        [else (cons (dir-contents file-system)  
+                    (remove-empty (make-dir (dir-name file-system)
+                        (dir-owner file-system)
+                         (rest (dir-contents file-system)))))]))
+
+
+(remove-empty example-fs)

@@ -1,0 +1,46 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a04q04) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 04, Problem 4
+;; ***************************************************
+
+;; Constants:
+(define hexadecimals
+  (list "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "A" "B" "C" "D" "E" "F" "a" "b" "c" "d" "e" "f"))
+;; a.)
+
+;; A HexColour is one of:
+
+
+;; b.)
+
+;; Examples:
+(check-expect (valid-hex? "#Cd5C5C") true)
+(check-expect (valid-hex? "Cd5C5C") false)
+
+;; valid-hex?: Any -> Bool
+(define (valid-hex? hexcolour) 
+  (cond [(not (string? hexcolour)) false]
+        [(not (= (string-length hexcolour) 7)) false]
+        [(not (string=? (substring hexcolour 0 1) "#")) false]
+        [(check-letter hexcolour 1) true]  
+        [else false]))
+
+;; Tests:
+(check-expect (valid-hex? "Cd5C5C5") false)
+(check-expect (valid-hex? "#GG5C5C") false)     
+(check-expect (valid-hex? 7957) false)
+(check-expect (valid-hex? #\a) false)
+(check-expect (valid-hex? true) false)
+(check-expect (valid-hex? "#D1CE") false)
+(check-expect (valid-hex? "Cd5C5CCd5C5CCd5C5CCd5C5CCd5C5C") false)
+
+
+(define (check-letter hexcolour count)
+  (cond [(= count 7) true]
+        [(member? (substring hexcolour count (add1 count)) hexadecimals)
+         (check-letter hexcolour (add1 count))]
+        [else false]))

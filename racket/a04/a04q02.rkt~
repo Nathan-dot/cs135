@@ -1,0 +1,112 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a04q02) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 04, Problem 2
+;; ***************************************************
+
+;; Constants:
+(define attacks-per-day 2215)
+;; This constant represents the estimated number of hacker attacks in a day
+;; as there are 86400 seconds in a day and a hacker attack every 39 seconds.
+(define attacks-per-13-days 28800)
+
+(define count 0)
+
+;; a.)
+;; (hacker-attacks num-of-days) consumes a number of days and produces the
+;;    rounded-down, estimated number of hacker attacks in this time interval, from
+;;    the beginning of the first day to the beginning of the last.
+
+;; Examples:
+(check-expect (hacker-attacks 31) 68676)  
+(check-expect (hacker-attacks 1) 2215) 
+
+;; hacker-attacks: Nat -> Nat
+(define (hacker-attacks nums-of-days)
+  (whole-number-attacks nums-of-days)) 
+
+;; Tests:
+(check-expect (hacker-attacks 0) 0)
+(check-expect (hacker-attacks 2) 4430)
+(check-expect (hacker-attacks 23) 50953) ; 10 case
+(check-expect (hacker-attacks 31) 68676) ; 5 case
+(check-expect (hacker-attacks 1) 2215) 
+(check-expect (hacker-attacks 88) 194953) ; 12 case
+(check-expect (hacker-attacks 593) 1313723) ; 8 case
+(check-expect (hacker-attacks 37) 81969) ; 11 case
+(check-expect (hacker-attacks 19) 42092) ; 6 case
+(check-expect (hacker-attacks 5930) 13137230)
+(check-expect (hacker-attacks 4283) 9488492)
+
+
+;; (whole-number-attacks nums-of-days) produces the whole number number of attacks
+;;    in a given number of days
+
+;; Examples:
+(check-expect (whole-number-attacks 1) 2215) 
+(check-expect (whole-number-attacks 88) 194953)
+
+;; whole-number-attacks: Nat -> Nat
+(define (whole-number-attacks nums-of-days)
+  (cond [(= nums-of-days 0) 0]
+        [(= nums-of-days 3)
+         (+ attacks-per-day 1 (whole-number-attacks (sub1 nums-of-days)))]
+        [(= nums-of-days 6)
+         (+ attacks-per-day 1 (whole-number-attacks (sub1 nums-of-days)))] 
+        [(= nums-of-days 8)
+         (+ attacks-per-day 1 (whole-number-attacks (sub1 nums-of-days)))]
+        [(= nums-of-days 11)
+         (+ attacks-per-day 1 (whole-number-attacks (sub1 nums-of-days)))]
+        [(>= nums-of-days 13) (+ attacks-per-13-days (whole-number-attacks (- nums-of-days 13)))]
+        [else (+ attacks-per-day (whole-number-attacks (sub1 nums-of-days)))]))
+ 
+
+;; b.)
+;; (attack-threshold hacker-threshold) consumes the threshold number of launched hacker
+;;   attacks and produces the number of days when that threshold will be reached.
+
+;; Examples:
+(check-expect (attack-threshold 15853) 8)
+(check-expect (attack-threshold 25000) 12)
+
+;; attack-threshold: Nat -> Nat
+(define (attack-threshold hacker-threshold)
+  (cond [(= 0 hacker-threshold) 1]
+        [else (threshold-days hacker-threshold 0)]))
+
+;; Tests:
+(check-expect (attack-threshold 0) 1)
+(check-expect (attack-threshold 1) 1)
+(check-expect (attack-threshold 25000) 12)
+(check-expect (attack-threshold 15853) 8)
+(check-expect (attack-threshold 68676) 31)
+(check-expect (attack-threshold 2215) 1)
+(check-expect (attack-threshold 2216) 2)
+(check-expect (attack-threshold 4430) 2)
+(check-expect (attack-threshold 50953) 23) 
+(check-expect (attack-threshold 68676) 31)
+(check-expect (attack-threshold 194953) 88) 
+(check-expect (attack-threshold 1313723) 593) 
+(check-expect (attack-threshold 81969) 37) 
+(check-expect (attack-threshold 42092) 19) 
+(check-expect (attack-threshold 13137230) 5930)
+(check-expect (attack-threshold 9488492) 4283) 
+
+
+;; (threshold-days hacker-threshold count) produces the number of days [count]
+;;   it takes to reach the hacker-threshold
+
+;; Examples:
+(check-expect (threshold-days 2215 0) 1)
+(check-expect (threshold-days 2216 0) 2)
+
+;; threshold-days Nat Nat -> Nat
+(define (threshold-days hacker-threshold count)
+  (cond [(>= (hacker-attacks count) hacker-threshold) count]
+        [else (threshold-days hacker-threshold (add1 count))]))
+
+
+

@@ -1,0 +1,16 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname trace-test) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+(require htdp-trace)
+
+;; This DrRacket file tests whether you have installed the
+;; uwaterloo-racket-tools package correctly
+
+;; (polynomial x) produces a polynomial evaluated at x
+(define/trace (polynomial x)
+  (+ (sqr x) (* 3 x) 8))
+
+(polynomial -3.2)
+(polynomial 8)
+
+;; Try inserting a text box below this line: (Insert -> Insert Text Box)

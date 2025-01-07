@@ -1,0 +1,101 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a05q01) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 05, Problem 1
+;; ***************************************************
+
+;; a.)
+;; (mean lon) consumes [lon] and produces the average of its elements.
+
+;; Examples:
+(check-expect (mean (list 13 3 2 8 6 4 10 5)) 51/8)
+(check-expect (mean (list 13.5 3.5 2.5 8.5 6.5 4.5 10.5 5.5)) 55/8)
+
+;; mean: (listof Num) -> Num
+;; Requires: lon must be non-empty
+(define (mean lon)
+  (/ (mean/acc lon 0) (length lon)))
+
+;; Tests:
+(check-expect (mean (list -13.5 -3.5 -2.5 -8.5 -6.5 -4.5 -10.5 -5.5)) -55/8)
+(check-expect (mean (list -13.5 3.5 -2.5 8.5 -6.5 -4.5 10.5 -5.5)) -10/8)
+(check-expect (mean (list 0 0 0 0 0 0 0 0 0)) 0)
+(check-expect (mean (list 13.1 3.3 2.3 8.9 6.5 4.5 10.5 5.5)) (/ 54.6 8.0))
+(check-expect (mean (list -5 5 -3 3 -4 4 -19 19)) 0)
+(check-within (mean (list 13.132425556665 23.898182991 4.1212122)) 13.7172736 0.01)
+(check-within (mean/acc (list -13/2 3/2 5/3 4/6 18/7) 0) -0.0952380886 0.01)
+
+
+;; (mean/acc lon acc) adds each element of [lon] to [acc]
+;;    and produces [acc], the sum of [lon]'s elements.
+
+;; Examples:
+(check-expect (mean/acc (list 13 3 2 8 6 4 10 5) 0) 51)
+(check-expect (mean/acc (list 13.5 3.5 2.5 8.5 6.5 4.5 10.5 5.5) 0) 55)
+(check-expect (mean/acc (list -13.5 3.5 -2.5 8.5 -6.5 -4.5 10.5 -5.5) 0) -10)
+(check-within (mean/acc (list 13.132425556665 23.898182991 4.1212122) 0) 41.1518208 0.01)
+
+;; mean/acc: (listof Num) Num -> Num
+;; Requires: lon must be non-empty
+(define (mean/acc lon acc)
+  (cond [(empty? lon) 0] 
+        [else (+ acc (first lon) (mean/acc (rest lon) acc))]))
+
+
+;; b.)
+;; (partition num lon) produces a three element list where the first element
+;;   is a list of all numbers in [lon] that are less than [num], the second 
+;;   is a list for all elements equal to [num], and the third is a list for
+;;   all elements greater than [num].
+
+;; Examples:
+(check-expect (partition 3 (list 2 3 4 5)) (list (list 2) (list 3) (list 4 5)))
+(check-expect (partition 0 (list 2 3 4 5)) (list empty empty (list 2 3 4 5)))
+
+;; partition: Num (listof Num) -> (listof (anyof (listof Num) empty) (anyof (listof Num) empty) (anyof (listof Num) empty)) 
+(define (partition num lon)
+  (list (partition/acc num lon 0) (partition/acc num lon 1) (partition/acc num lon 2)))
+
+;; Tests:
+(check-expect (partition 5 (list 9 1 5 2 3 6)) (list (list 1 2 3) (list 5) (list 9 6)))
+(check-expect (partition 0 (list 0 0 0 0 0 0)) (list empty (list 0 0 0 0 0 0) empty))
+(check-expect (partition 6 empty) (list empty empty empty))
+(check-expect (partition 5 (list 9.9 5.0 5.1 5.2 5.3 6.6))
+              (list empty (list 5.0) (list 9.9 5.1 5.2 5.3 6.6)))
+(check-expect (partition 5/8 (list 2/8 1/8 9/8 11/8 5/8))
+              (list (list 2/8 1/8) (list 5/8) (list 9/8 11/8)))
+(check-expect (partition -10 (list 9 -3 -10 -11 78 904))
+              (list (list -11) (list -10) (list 9 -3 78 904)))
+(check-expect (partition 5.4 (list 9.9 5.0 5.1 5.2 5.3 6.6))
+              (list (list 5.0 5.1 5.2 5.3) empty (list 9.9 6.6)))
+
+
+;; (partition/acc num lon acc) produces a list of all numbers in [lon] that are less than [num],
+;;    a list of numbers in [num] that are equal to num, or a list of numbers in [lon] that are
+;;    greater than [num]. The variation of the list that is produced depends on [acc] and the
+;;    values that produce each list outcome are 0, 1, and 2 respectively.
+
+;; Examples:
+(check-expect (partition/acc 5 empty 1) empty)
+(check-expect (partition/acc -10 (list 9 -3 -10 -11 78 904) 1)
+              (list -10)) 
+(check-expect (partition/acc 5.4 (list 9.9 5.0 5.1 5.2 5.3 6.6) 2)
+              (list 9.9 6.6))
+(check-expect (partition/acc 0 (list 0 0 0 0 0 0) 2) empty)
+(check-expect (partition/acc 0 (list 0 0 0 0 0 0) 0) empty)
+(check-expect (partition/acc 0 (list 0 0 0 0 0 0) 1) (list 0 0 0 0 0 0))
+
+;; partition/acc: Num (listof Num) Nat -> (listof Num)
+;; Requires: [acc] must be 0, 1, or 2
+(define (partition/acc num lon acc) 
+  (cond [(empty? lon) empty]
+        [(and (< (first lon) num) (= acc 0))
+         (cons (first lon) (partition/acc num (rest lon) 0))]
+        [(and (= (first lon) num) (= acc 1))
+         (cons (first lon) (partition/acc num (rest lon) 1))]    
+        [(and (> (first lon) num) (= acc 2))
+         (cons (first lon) (partition/acc num (rest lon) 2))]
+        [else (partition/acc num (rest lon) acc)]))

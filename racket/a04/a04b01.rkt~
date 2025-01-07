@@ -1,0 +1,229 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a04b01) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 04, Bonus
+;; ***************************************************
+
+;; Data Definitions:
+
+;; A HexColour is a 6 character code in Str form that begins with a hash mark and represents
+;; a certain colour.
+;;   Requires:
+;;     The Str's first character must be "#".
+;;     All characters after the first character (hash mark) must be a hexadecimal digit
+;;       (0 through 9, or A through F).
+;;     The length of the Str, including the "#" character, must be 7.
+
+;; A RGB is a list of exactly three natural numbers, which represents a specific colour
+;;   Requires:
+;;     Each natural number in the list must be from 0 through 255
+
+(define hex-to-decimal
+  (list (list "00" 0)(list "01" 1)(list "02" 2)(list "03" 3)(list "04" 4)
+        (list "05" 5)(list "06" 6)(list "07" 7)(list "08" 8)(list "09" 9)
+        (list "0A" 10)(list "0B" 11)(list "0C" 12)(list "0D" 13)(list "0E" 14)
+        (list "0F" 15) (list "10" 16)(list "11" 17)(list "12" 18)(list "13" 19)
+        (list "14" 20)(list "15" 21)(list "16" 22)(list "17" 23)(list "18" 24)
+        (list "19" 25)(list "1A" 26)(list "1B" 27)(list "1C" 28)(list "1D" 29)
+        (list "1E" 30)(list "1F" 31)(list "20" 32)(list "21" 33)(list "22" 34)
+        (list "23" 35)(list "24" 36)(list "25" 37)(list "26" 38)(list "27" 39)
+        (list "28" 40)(list "29" 41)(list "2A" 42)(list "2B" 43)(list "2C" 44)
+        (list "2D" 45)(list "2E" 46)(list "2F" 47)(list "30" 48)(list "31" 49)
+        (list "32" 50)(list "33" 51)(list "34" 52)(list "35" 53)(list "36" 54)
+        (list "37" 55)(list "38" 56)(list "39" 57)(list "3A" 58)(list "3B" 59)
+        (list "3C" 60)(list "3D" 61)(list "3E" 62)(list "3F" 63)(list "40" 64)
+        (list "41" 65)(list "42" 66)(list "43" 67)(list "44" 68)(list "45" 69)
+        (list "46" 70)(list "47" 71)(list "48" 72)(list "49" 73)(list "4A" 74) 
+        (list "4B" 75)(list "4C" 76)(list "4D" 77)(list "4E" 78)(list "4F" 79)
+        (list "50" 80)(list "51" 81)(list "52" 82)(list "53" 83)(list "54" 84)
+        (list "55" 85)(list "56" 86)(list "57" 87)(list "58" 88)(list "59" 89)
+        (list "5A" 90)(list "5B" 91)(list "5C" 92)(list "5D" 93)(list "5E" 94)
+        (list "5F" 95)(list "60" 96)(list "61" 97)(list "62" 98)(list "63" 99)
+        (list "64" 100)(list "65" 101)(list "66" 102)(list "67" 103)
+        (list "68" 104)(list "69" 105)(list "6A" 106)(list "6B" 107)
+        (list "6C" 108)(list "6D" 109)(list "6E" 110)(list "6F" 111)
+        (list "70" 112)(list "71" 113)(list "72" 114)(list "73" 115)
+        (list "74" 116)(list "75" 117)(list "76" 118)(list "77" 119)
+        (list "78" 120)(list "79" 121)(list "7A" 122)(list "7B" 123)
+        (list "7C" 124)(list "7D" 125)(list "7E" 126)(list "7F" 127)
+        (list "80" 128) (list "81" 129)(list "82" 130)
+        (list "83" 131)(list "84" 132)(list "85" 133)(list "86" 134)
+        (list "87" 135)(list "88" 136)(list "89" 137)(list "8A" 138)
+        (list "8B" 139)(list "8C" 140)(list "8D" 141)(list "8E" 142)
+        (list "8F" 143)(list "90" 144)(list "91" 145)(list "92" 146)
+        (list "93" 147)(list "94" 148)(list "95" 149)(list "96" 150)
+        (list "97" 151)(list "98" 152)(list "99" 153)(list "9A" 154)
+        (list "9B" 155)(list "9C" 156)(list "9D" 157)(list "9E" 158)
+        (list "9F" 159)(list "A0" 160)(list "A1" 161)(list "A2" 162)
+        (list "A3" 163)(list "A4" 164)(list "A5" 165)(list "A6" 166)
+        (list "A7" 167)(list "A8" 168)(list "A9" 169)(list "AA" 170)
+        (list "AB" 171)(list "AC" 172)(list "AD" 173)(list "AE" 174)
+        (list "AF" 175)(list "B0" 176)(list "B1" 177)(list "B2" 178)
+        (list "B3" 179)(list "B4" 180)(list "B5" 181)(list "B6" 182)
+        (list "B7" 183)(list "B8" 184)(list "B9" 185)(list "BA" 186)
+        (list "BB" 187)(list "BC" 188)(list "BD" 189)(list "BE" 190)
+        (list "BF" 191)(list "C0" 192)(list "C1" 193)(list "C2" 194)
+        (list "C3" 195)(list "C4" 196)(list "C5" 197)(list "C6" 198)
+        (list "C7" 199)(list "C8" 200)(list "C9" 201)(list "CA" 202)
+        (list "CB" 203)(list "CC" 204)(list "CD" 205)(list "CE" 206)
+        (list "CF" 207)(list "D0" 208)(list "D1" 209)(list "D2" 210)
+        (list "D3" 211)(list "D4" 212)(list "D5" 213)(list "D6" 214)
+        (list "D7" 215)(list "D8" 216)(list "D9" 217)(list "DA" 218)
+        (list "DB" 219)(list "DC" 220)(list "DD" 221)(list "DE" 222)
+        (list "DF" 223)(list "E0" 224)(list "E1" 225)(list "E2" 226)
+        (list "E3" 227)(list "E4" 228)(list "E5" 229)(list "E6" 230)
+        (list "E7" 231)(list "E8" 232)(list "E9" 233)(list "EA" 234)
+        (list "EB" 235)(list "EC" 236)(list "ED" 237)(list "EE" 238)
+        (list "EF" 239)(list "F0" 240)(list "F1" 241)(list "F2" 242)
+        (list "F3" 243)(list "F4" 244)(list "F5" 245)(list "F6" 246)
+        (list "F7" 247)(list "F8" 248)(list "F9" 249)(list "FA" 250)
+        (list "FB" 251)(list "FC" 252)(list "FD" 253)(list "FE" 254)
+        (list "FF" 255)))
+
+;; (colour-rectangle base-colour) produces a sorted list, in increasing
+;;    order, of four hexadecimal colours that complete a rectangle
+;;    colour scheme for [base-colour] 
+
+;; Examples:
+
+(check-expect (colour-rectangle "#40190F") 
+  (list "#0F3640" "#190F40" "#36400F" "#40190F"))
+
+;; colour-rectangle: HexColour, RGB -> (listof HexColour)
+(define (colour-rectangle hexcolour)
+  (colour-rectangle/list (search-hex-code hexcolour)))
+ 
+
+(define (colour-rectangle/list rgb)
+  (convert (translate (list (rgb-shift-left rgb)
+        (rgb-find-pairing (rgb-flipped rgb))
+        (rgb-shift-left (rgb-find-pairing (rgb-flipped rgb))) rgb)))) 
+
+(define (rgb-shift-left rgb)
+  (list (first (rest rgb)) (first (rest (rest rgb))) (first rgb)))
+
+(define (rgb-flipped rgb)
+  (list (first (rest (rest rgb))) (first (rest rgb)) (first rgb)))
+
+(define (rgb-find-pairing rgb)
+  (list (first rgb) (+ (- (first rgb) (first (rest rgb)))
+           (first (rest (rest rgb)))) (first (rest (rest rgb)))))
+
+(rgb-shift-left (list 0 100 99)) 
+(rgb-find-pairing (list 255 0 0))
+
+(define (convert rgb-list)
+  (cond [(empty? rgb-list) empty]
+        [else (cons (converter (first rgb-list) hex-to-decimal)
+                    (convert (rest rgb-list)))]))  
+
+;; (search-hex-code hexcolour) converts a hexidecimal colour [hexcolour] to
+;;    an RGB tuple, by following the hex-to-decimal dictionary, and produces said tuple.
+
+;; Examples:
+(check-expect (search-hex-code "#AA0929") (list 170 9 41))
+(check-expect  
+ (search-hex-code "#3EDF89") (list 62 223 137))
+
+;; search-hex-code: HexColour -> RGB
+;; Requires:
+;;   hexcolour must be a valid hex colour code.
+;;     This entails that (= (length HexColour) 7), the code begins with "#", and
+;;     it has the proper hexadecimal digits.
+(define (search-hex-code hexcolour)  
+  (list (dictionary (substring hexcolour 1 3) hex-to-decimal) 
+        (dictionary (substring hexcolour 3 5) hex-to-decimal)
+        (dictionary (substring hexcolour 5 7) hex-to-decimal)))  
+
+
+;; (dictionary hexcolour hex-to-decimals) converts one third (two letters) of a HexColour code
+;;    and matches it to part of an RGB tuple value, which it then produces.
+
+;; Examples:
+(check-expect (dictionary "FF" hex-to-decimal) 255)
+(check-expect (dictionary "3E" hex-to-decimal) 62)
+
+;; dictionary: HexColour (listof RGB) -> Nat
+;; Requires:
+;;   hexcolour must be a valid hex colour code.
+;;     This entails that (= (length HexColour) 7), the code begins with "#", and
+;;     it has the proper hexadecimal digits.
+(define (dictionary hexcolour hex-to-decimals) 
+  (cond [(string=? (first (first hex-to-decimals)) (string-upcase hexcolour))
+         (first (rest (first hex-to-decimals)))]
+        [else (dictionary hexcolour (rest hex-to-decimals))]))
+
+
+;; (insert rgb list) sorts a given rgb [rgb] into a given list
+;;   [list] and produces said list. When sorting rgbs, it is done
+;;   in non-decreasing order.
+
+;; Examples:
+(check-expect (insert (list 103 250 69) (list
+                     (list 69 171 1))) (list (list 69 171 1) (list 103 250 69)))
+(check-expect (insert (list 68 250 69) (list
+                     (list 69 171 1))) (list (list 68 250 69) (list 69 171 1)))  
+
+;; insert: RGB (listof RGB) -> (listof RGB)
+(define (insert rgb list)
+  (cond [(empty? list) (cons rgb empty)]
+        [(or (< (first rgb) (first (first list)))    
+             (and (= (first rgb) (first (first list))) (< (second rgb) (second (first list))))
+             (and (= (first rgb) (first (first list))) (= (second rgb) (second (first list)))
+                  (< (first (rest (rest rgb))) (first (rest (rest (first list))))))
+             (and (= (first rgb) (first (first list))) (= (second rgb) (second (first list)))
+                  (= (first (rest (rest rgb))) (first (rest (rest (first list))))))) (cons rgb list)] 
+        [else (cons (first list) (insert rgb (rest list)))]))
+
+
+;; (translate list) sorts [list] and produces it when finished sorting
+;;   in its non-decreasing order form.
+;; Examples:
+(check-expect (translate empty) empty)
+(check-expect (translate (list (list 103 250 69) (list 69 171 1)))
+              (list (list 69 171 1) (list 103 250 69))) 
+
+(define (translate list)
+  (cond [(empty? list) empty]
+        [else (insert (first list) 
+                      (translate (rest list)))]))
+
+;; (converter rgb hex-to-decimals) converts an RGB value to HexColour
+;;    , using the HexColour-Dictionary, and produces it.
+
+;; Examples:
+(check-expect (converter (list 255 0 0) hex-to-decimal) "#FF0000")
+(check-expect (converter (list 0 0 0) hex-to-decimal) "#000000")
+
+;; converter: RGB HexColour-Dictionary -> HexColour
+(define (converter rgb hex-to-decimals)
+  (string-upcase (string-append "#" (rgb-to-hexcolour (first rgb) hex-to-decimals)
+                 (rgb-to-hexcolour (first (rest rgb)) hex-to-decimals)
+                 (rgb-to-hexcolour (first (rest (rest rgb))) hex-to-decimals))))
+
+
+;; (rgb-to-hexcolour rgb hex-to-decimals) will produce part of an
+;;    RGB tuple value in hexadecimal, using the HexColour-Dictionary.
+;;    The "part of RGB tuple value" refers to one of a tuple's r(ed), g(reen), b(lue) values.
+
+;; Examples:
+(check-expect (rgb-to-hexcolour 255 hex-to-decimal) "FF")
+(check-expect (rgb-to-hexcolour 0 hex-to-decimal) "00") 
+
+;; rgb-to-hexcolour: Nat HexColour-Dictionary Nat -> Str
+(define (rgb-to-hexcolour rgb hex-to-decimals)
+  (cond [(= rgb (second (first hex-to-decimals))) (first (first hex-to-decimals))]  
+        [else (rgb-to-hexcolour rgb (rest hex-to-decimals))]))  
+
+
+
+
+
+
+
+
+
+

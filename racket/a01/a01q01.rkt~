@@ -1,0 +1,46 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname a01q01) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 01, Problem 1
+;; ***************************************************
+
+;; a.)
+;; (energy m v) produces the energy in joules of a moving object given its mass 
+;; in kilograms (kg) and its velocity in meters per second m/s
+
+;; Examples:
+(check-within (energy 2 2) 179751035747363520 0.01)
+(check-within (energy 0.5 0.1) 44937758936840880 0.01)
+
+;; energy: Num Num -> Num
+
+(define c 299792458) ;c is the constant for the speed of light 
+
+(define (energy m v)
+  (/ (* m (expt c 2)) (sqrt (- 1 (/ (expt v 2) (expt c 2))))))
+
+
+;; Tests:
+(check-expect (energy 62 0) 5572282108168269368)
+(check-within (energy 2 1) 179751035747363520 0.01)
+
+;; b.)
+;; (afib n) consumes an integer n and produces an approximation of the
+;; Fibonnaci sequence's nth term
+
+;; Examples:
+(check-within (afib 4) 3 0.01)
+(check-within (afib 5) 5 0.01)
+(check-within (afib 6) 8 0.01)
+
+;; afib: Int -> Num
+(define g (/ (+ 1 (sqrt 5)) 2)) ; g is the constant for the golden ratio
+(define (afib n) (/ (- (expt g n) (expt (* (/ 1 g) -1) n)) (sqrt 5)))
+
+;; Tests:
+(check-within (afib 1) 1 0.01)
+(check-within (afib 2) 1 0.01)
+(check-within (afib 3) 2 0.01)

@@ -1,0 +1,37 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-reader.ss" "lang")((modname a07q02) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 07, Problem 2
+;; ***************************************************
+
+(require "filesystem-lib.rkt")
+;; A FileSystem is one of:
+;; * File
+;; * Dir
+  
+(define-struct file (name size owner))
+;; A File is a (make-file Str Nat Sym)
+
+(define-struct dir (name owner contents))
+;; A Dir is a (make-dir Str Sym (listof FileSystem))
+
+;; a.)
+(define example-fs
+  (make-dir "root" 'root
+     (list
+      (make-dir "Dan" 'dan
+        (list (make-file "log.txt" 814 'dan)
+              (make-file "profile.jpg" 60922 'dan)
+              (make-dir "music" 'dan
+                (list (make-file "Thelonius Monk.mp3" 92227584 'dan)))))
+      (make-dir "Slides" 'teaching
+        (list (make-dir "cs135" 'teaching
+                (list (make-file "01-intro.pdf" 72244 'teaching)
+                      (make-file "11-trees.pdf" 123124 'teaching)
+                      (make-dir "system" 'root
+                        (list (make-dir "logs" 'teaching empty)))))))
+      (make-file "vmlinuz" 30 'root))))
+

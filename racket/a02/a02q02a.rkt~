@@ -1,0 +1,136 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname a02q02a) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 02, Problem 2A
+;; ***************************************************
+
+;; a.)
+;; (roadmap-step current-step one-dose two-dose days-since-step outbreak?) produces
+;;    the appropriate step of the Roadmap plan given [current-step],
+;;    the current step of the Roadmap plan the province is in. The appropriate
+;;    step produced relies on [one-dose], the % of people with one vaccine,
+;;    [two-dose], the % of people with two, [days-since-step], the number of days
+;;    since the province moved into the current step,
+;;    and [outbreak?], the province's indicator if there is an outbreak.
+
+;; Examples:
+(check-expect (roadmap-step 'step1 21 98 22 false) 'invalid)
+(check-expect (roadmap-step 'step0 66 30 20 false) 'step1)  
+(check-expect (roadmap-step 'step1 100 99 100 true) 'step1)
+(check-expect (roadmap-step 'step3 100 99 100 false) 'step3)
+
+;; roadmap-step: Sym Nat Nat Nat Bool -> Sym
+;; Requires:
+;;    one-dose <= 100, two-dose <= 100
+;;    one-dose >= two-dose
+;;    current-step can only be one of the following
+;;    symbols: 'step0, 'step1, 'step2, 'step3
+(define (roadmap-step current-step one-dose two-dose days-since-step outbreak?)
+  (cond [(and outbreak? (check-step current-step one-dose two-dose)) current-step]
+        [outbreak? 'invalid]
+        [(> two-dose one-dose) 'invalid]
+        [(and (check-step current-step one-dose two-dose)
+              (equal? current-step 'step3)) 'step3]
+        [(and (equal? current-step 'step2) 
+              (>= one-dose 80) (>= two-dose 25) (>= days-since-step 21)) 'step3]
+        [(and (check-step current-step one-dose two-dose)
+              (equal? current-step 'step2)) 'step2]
+        [(and (equal? current-step 'step1)
+              (>= one-dose 70) (>= two-dose 20) (>= days-since-step 21)) 'step2]
+        [(and (check-step current-step one-dose two-dose)
+              (equal? current-step 'step1)) 'step1]
+        [(and (equal? current-step 'step0) (>= one-dose 60)) 'step1]
+        [else 'invalid]))
+
+;; Tests:
+
+;; Test Cases for 'step0
+(check-expect (roadmap-step 'step0 98 23 100 true) 'step0)   
+(check-expect (roadmap-step 'step0 60 31 26 false) 'step1)
+(check-expect (roadmap-step 'step0 98 23 100 true) 'step0)
+(check-expect (roadmap-step 'step0 81 30 2 false) 'step1)
+(check-expect (roadmap-step 'step0 90 5 0 true) 'step0)
+(check-expect (roadmap-step 'step0 63 37 4 false) 'step1)
+(check-expect (roadmap-step 'step0 42 99 0 false) 'invalid)
+
+;; Test Cases for 'step1
+(check-expect (roadmap-step 'step1 85 31 26 false) 'step2) 
+(check-expect (roadmap-step 'step1 70 20 21 false) 'step2)
+(check-expect (roadmap-step 'step1 67 20 121 false) 'step1) 
+(check-expect (roadmap-step 'step1 71 19 21 false) 'step1) 
+(check-expect (roadmap-step 'step1 71 20 18 false) 'step1) 
+(check-expect (roadmap-step 'step1 100 100 100 true) 'step1)
+(check-expect (roadmap-step 'step1 58 10 10 false) 'invalid)
+(check-expect (roadmap-step 'step1 22 100 19 false) 'invalid)
+(check-expect (roadmap-step 'step1 69 29 19 false) 'step1)
+(check-expect (roadmap-step 'step1 89 20 20 false) 'step1)
+(check-expect (roadmap-step 'step1 88 27 21 true) 'step1)
+(check-expect (roadmap-step 'step1 91 55 210 false) 'step2) 
+
+;; Test Cases for 'step2
+(check-expect (roadmap-step 'step2 99 98 22 false) 'step3)
+(check-expect (roadmap-step 'step2 99 99 22 false) 'step3) 
+(check-expect (roadmap-step 'step2 78 98 22 false) 'invalid)
+(check-expect (roadmap-step 'step2 81 26 20 false) 'step2)  
+(check-expect (roadmap-step 'step2 81 23 21 false) 'step2)
+(check-expect (roadmap-step 'step2 64 25 21 false) 'invalid)
+(check-expect (roadmap-step 'step2 80 25 21 false) 'step3)
+(check-expect (roadmap-step 'step2 100 100 100 true) 'step2)
+(check-expect (roadmap-step 'step2 91 35 6 false) 'step2)
+(check-expect (roadmap-step 'step2 68 17 20 false) 'invalid)
+(check-expect (roadmap-step 'step2 17 89 21 false) 'invalid)
+
+
+;; Test Cases for 'step3
+(check-expect (roadmap-step 'step3 100 100 100 true) 'step3)
+(check-expect (roadmap-step 'step3 50 67 24 false) 'invalid)
+(check-expect (roadmap-step 'step3 79 24 14 true) 'invalid)
+(check-expect (roadmap-step 'step3 10 90 21 false) 'invalid)
+(check-expect (roadmap-step 'step3 80 24 22 true) 'invalid)
+(check-expect (roadmap-step 'step3 80 25 22 false) 'step3)
+(check-expect (roadmap-step 'step3 99 99 27 false) 'step3)
+
+
+;; (check-step current-step one-dose two-dose) produces
+;;    true if current vaccination rates of [one-dose] and [two-dose] meet
+;;    the current step's criteria and produces false otherwise.
+
+;; Examples:
+(check-expect (check-step 'step0 66 30) true) 
+(check-expect (check-step 'step1 100 99) true)  
+(check-expect (check-step 'step3 100 99) true)
+
+;; check-step Sym Nat Nat Nat Bool -> Sym
+;; Requires:
+;;    current-step can only be one of the following
+;;    symbols: 'step1, 'step2, 'step3.
+;;    Assumes that the province is not in a state of outbreak and that
+;;    one-dose >= two-dose and that one-dose <= 100
+(define (check-step current-step one-dose two-dose)
+  (cond [(and (equal? current-step 'step3)
+              (>= one-dose 80) (>= two-dose 25)) true]
+        [(and (equal? current-step 'step2)
+              (>= one-dose 70) (>= two-dose 20)) true]
+        [(and (equal? current-step 'step1)
+              (>= one-dose 60)) true] 
+        [(equal? current-step 'step0) true]
+        [else false]))
+
+;; Tests:
+(check-expect (check-step 'step0 98 23) true)   
+(check-expect (check-step 'step0 60 31) true)
+(check-expect (check-step 'step1 85 31) true) 
+(check-expect (check-step 'step1 54 31) false) 
+(check-expect (check-step 'step1 70 20) true)
+(check-expect (check-step 'step2 99 98) true)
+(check-expect (check-step 'step2 69 20) false) 
+(check-expect (check-step 'step2 99 99) true) 
+(check-expect (check-step 'step3 100 100) true)
+(check-expect (check-step 'step3 50 67) false)
+(check-expect (check-step 'step3 79 24) false)
+
+
+

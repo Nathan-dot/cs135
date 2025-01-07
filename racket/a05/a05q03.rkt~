@@ -1,0 +1,167 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a05q03) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 05, Problem 3
+;; ***************************************************
+
+;; a.)
+;; Data Definitions:
+;; A Response is a (list Nat (anyof Bool Str Int))
+;;   Requires: Nat cannot equal 0
+
+(define (r-qnum response) (first response))
+(define (r-ans response) (second response))
+
+
+;; b.)
+;; A RList is a (listof Response)
+;;   Requires: Each [Response] must be in strictly ascending
+;;   order by question number.
+
+
+;; c.)
+;; (response-similarity response1 response2) produces 1 if [response1] and [response2]
+;;   have identical question numbers and answers (response answers being non-case sensitive).
+;;   Otherwise, this produces 0.
+
+;; Examples:
+(check-expect (response-similarity (list 3 true) (list 3 "help")) 0)
+(check-expect (response-similarity (list 3 "help") (list 3 "help")) 1)
+
+;; response-similarity: Response Response -> (anyof 0 1)
+(define (response-similarity response1 response2)
+  (cond [(and (response-qnum-similar response1 response2)
+              (response-ans-similar response1 response2)) 1] 
+        [else 0]))
+
+;; Tests:
+(check-expect (response-similarity (list 3 true) (list 3 true)) 1)
+(check-expect (response-similarity (list 3 false) (list 3 true)) 0)
+(check-expect (response-similarity (list 2 "help") (list 3 "help")) 0)
+(check-expect (response-similarity (list 3 "help") (list 3 "halp")) 0)
+(check-expect (response-similarity (list 3 5) (list 3 5)) 1)
+(check-expect (response-similarity (list 3 0) (list 3 1)) 0)
+
+
+;; (response-qnum-similar response1 response2) produces true if
+;;    [response1] and [response2] share identical question numbers.
+;;    Otherwise, it produces false.
+
+;; Examples:
+(check-expect (response-qnum-similar (list 3 true) (list 3 true)) true)
+(check-expect (response-qnum-similar (list 2.5 false) (list 3 true)) false)
+(check-expect (response-qnum-similar (list 2 "help") (list 3 "help")) false)
+(check-expect (response-qnum-similar (list 3 "help") (list 3 "halp")) true)
+(check-expect (response-qnum-similar (list 2 5) (list 3 5)) false)
+(check-expect (response-qnum-similar (list 3 0) (list 3 1)) true)
+
+;; response-qnum-similar: Response Response -> Bool
+(define (response-qnum-similar response1 response2)
+  (cond [(= (r-qnum response1) (r-qnum response2)) true]
+        [else false]))
+
+
+;; (response-ans-similar response1 response2) produces true if
+;;    [response1] and [response2] have identical question answers.
+;;    Otherwise, it produces false.
+
+;; Examples:
+(check-expect (response-ans-similar (list 3 true) (list 3 true)) true) 
+(check-expect (response-ans-similar (list 2.5 false) (list 3 true)) false)
+(check-expect (response-ans-similar (list 2 "help") (list 3 "help")) true)
+(check-expect (response-ans-similar (list 3 "help") (list 3 "halp")) false)
+(check-expect (response-ans-similar (list 2 5) (list 3 5)) true)
+(check-expect (response-ans-similar (list 3 0) (list 3 1)) false)
+
+;; response-ans-similar: Response Response -> Bool
+(define (response-ans-similar response1 response2)
+  (cond [(and (boolean? (r-ans response1)) (boolean? (r-ans response2))
+              (boolean=? (r-ans response1) (r-ans response2))) true]
+        [(and (string? (r-ans response1)) (string? (r-ans response2))
+              (string=? (string-downcase (r-ans response1))
+                        (string-downcase (r-ans response2)))) true]
+        [(and (number? (r-ans response1)) (number? (r-ans response2))
+              (= (r-ans response1) (r-ans response2))) true]
+        [else false]))
+
+
+;; d.)
+;; (rlist-similarity RList1 RList2) will produce a value between 0 and 1, inclusively,
+;;    which represents the similarity of the responsses in [RList1] and [RList2].
+;;    If the two lists are identical, 1 is produced. If completely different, 0 is produced.
+
+;; Examples:
+(check-expect (rlist-similarity (list (list 3 true)) 
+                                (list (list 3 true) (list 5 "read"))) 
+              1/2)  
+(check-expect (rlist-similarity 
+               (list (list 1 true) (list 3 30) (list 4 false) (list 6 "cowboy")) 
+               (list (list 1 true) (list 2 10) (list 4 false) (list 6 "argue"))) 
+              2/5)  
+
+;; rlist-similarity: RList RList -> Nat
+;;   Requires: This Nat produced will be a value between 0 and 1 (inclusive).
+(define (rlist-similarity RList1 RList2)
+  (cond [(or (empty? RList1) (empty? RList2)) 0]
+        [else (accumulator RList1 RList2 0 0)]))   
+
+;; Tests:
+(check-expect (rlist-similarity 
+               (list (list 1 true) (list 2 30) (list 3 false) (list 4 "cowboy")) 
+               (list (list 5 true) (list 6 10) (list 7 false) (list 8 "argue"))) 
+              0)
+(check-expect (rlist-similarity 
+               (list (list 1 true) (list 2 30) (list 3 false) (list 5 "cowboy")) 
+               (list (list 1 true) (list 2 10) (list 4 false) (list 6 "argue"))) 
+              1/6)
+(check-expect (rlist-similarity empty empty) 0)
+(check-expect (rlist-similarity (list (list 1 true) (list 2 30) (list 3 false) (list 4 "cowboy"))
+                                (list (list 1 true) (list 2 30) (list 3 false) (list 4 "cowboy"))) 1)
+(check-expect (rlist-similarity (list ) (list )) 0)
+(check-expect (rlist-similarity (list (list 1 "cowboy") (list 3 false)) empty) 0)
+(check-expect (rlist-similarity empty (list (list 1 "cowboy") (list 3 false))) 0)
+(check-expect (rlist-similarity (list (list 1 "cowboy") (list 3 false) (list 7 89))
+                                (list (list 3 "COWBOY"))) 0)
+(check-expect (rlist-similarity (list (list 1 "cowboy") (list 3 false) (list 7 89))
+                                (list (list 1 "CowBoY"))) 1/3)
+(check-expect (rlist-similarity (list (list 1 "Cowboy") (list 3 false) (list 9 51022))
+                  (list (list 1 "CoWbOy") (list 4 true) (list 6 "cowboy") (list 7 72)
+                        (list 9 51022) (list 11 "help"))) 2/7)
+
+
+;; (accumulator RList1 RList2 identical count) produces the ratio between identical Responses,
+;;    represented by [identical], and distinct Responses, represented by [count],
+;;    in [RList1] and [RList2].
+
+;; Examples:
+(check-expect (accumulator (list (list 1 true) (list 3 30) (list 4 false) (list 6 "cowboy"))  
+             (list (list 1 true) (list 2 10) (list 4 false) (list 6 "argue")) 0 0) 0.4)
+(check-expect (accumulator (list (list 3 true)) (list (list 3 true) (list 5 "read")) 0 0) 0.5)
+(check-expect (accumulator (list (list 1 "cowboy") (list 3 false)) empty 0 0) 0)
+(check-expect (accumulator empty (list (list 1 "cowboy") (list 3 false)) 0 0) 0)
+(check-expect (accumulator (list (list 1 "cowboy") (list 3 false) (list 7 89))
+                                (list (list 3 "COWBOY")) 0 0) 0)
+(check-expect (accumulator (list (list 1 "cowboy") (list 3 false) (list 7 89))
+                                (list (list 1 "CowBoY")) 0 0) 1/3)
+(check-expect (accumulator (list (list 1 "Cowboy") (list 3 false) (list 9 51022))
+                  (list (list 1 "CoWbOy") (list 4 true) (list 6 "cowboy") (list 7 72)
+                        (list 9 51022) (list 11 "help")) 0 0) 2/7)
+
+;; accumulator: RList RList Nat Nat -> Num
+(define (accumulator RList1 RList2 identical count)
+  (cond [(and (empty? RList1) (not (empty? RList2))) (/ identical (+ count (length RList2)))]
+        [(and (empty? RList2) (not (empty? RList1))) (/ identical (+ count (length RList1)))]
+        [(and (empty? RList1) (empty? RList2)) (/ identical count)]
+        [(= (response-similarity (first RList1) (first RList2)) 1) 
+         (accumulator (rest RList1) (rest RList2) (add1 identical) (add1 count))]
+        [(> (r-qnum (first RList1)) (r-qnum (first RList2)))
+         (accumulator RList1 (rest RList2) identical (add1 count))]
+        [(< (r-qnum (first RList1)) (r-qnum (first RList2)))
+         (accumulator (rest RList1) RList2 identical (add1 count))]
+        [else (accumulator (rest RList1) (rest RList2) identical (add1 count))])) 
+
+
+

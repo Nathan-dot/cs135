@@ -1,0 +1,44 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a04q03) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 04, Problem 3
+;; ***************************************************
+
+;; Constants:
+(define hexadecimal "0123456789ABCDEF")
+  
+;; b.)
+#|
+(define (nat->hex nat)
+  (cond [(empty? (HexNat-template nat)) empty]
+        [else (cons (substring hexadecimal (first (HexNat-template nat))) 
+             (+ (first (HexNat-template nat)) 1)) (nat->hex (rest (HexNat-template nat))))])) 
+|#
+
+(define (HexNat-template nat)
+  (cond [(empty? nat) empty]
+        [(and (not (list? nat)) (= nat 0)) empty] 
+        [else (cons (remainder nat 16) (HexNat-template (quotient nat 16)))])) 
+
+(define (converter list)
+  (cond [(= (length list) 1) (substring hexadecimal (first list) (+ (first list) 1))]
+        [else (cons (substring hexadecimal (first list) (+ (first list) 1)) 
+                    (cons (converter (rest list)) empty))]))   
+
+(HexNat-template 765)
+(HexNat-template 1456789285) 
+(converter (reverse (HexNat-template 765)))
+(converter (reverse (HexNat-template 1456789285)))
+
+
+#|
+(define (nat->hex/list nat list)
+  (cond [(= (length list) 1) (first list)]
+        [else (string-append (first (converter (reverse (HexNat-template nat))))
+                             (nat->hex/list nat (rest (converter 
+                                                       (reverse (HexNat-template nat))))))]))    
+(nat->hex/list 765 empty)
+|#

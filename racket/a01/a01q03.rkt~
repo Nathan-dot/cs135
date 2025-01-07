@@ -1,0 +1,30 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname a01q03) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 01, Problem 2
+;; ***************************************************
+
+;; (time-to-heat-matter c m t-end t-start p) consumes the substance's
+;; specific heat capacity (J/g°C), its mass (g), the substance's desired end temperature (°C)
+;; , the substance's beginning temperature (°C), and the heating element's power rating (W)
+;; to produce the time needed, in seconds, to heat a substance
+
+;; Examples:
+(check-within (time-to-heat-matter 4.186 20 45 5 3000) 1.12 0.01)
+(check-within (time-to-heat-matter 2.09 55 100 25 600) 14.37 0.01)
+
+;; time-to-heat-matter: Num Num Num Num Num -> Num
+
+(define (Q c m t-end t-start)
+  (* c m (- t-end t-start))) ; Q is the desired energy output
+
+(define (time-to-heat-matter c m t-end t-start p)
+  (/ (Q c m t-end t-start) p))
+
+;; Tests:
+(check-within (time-to-heat-matter 2.03 104.5 63.5 60 1500) 0.49 0.01)
+(check-within (time-to-heat-matter 1.012 12.3 57 7 1200) 0.52 0.01)
+

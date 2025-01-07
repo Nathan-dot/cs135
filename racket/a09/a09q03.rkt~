@@ -1,0 +1,30 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname a09q03) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 09, Problem 3
+;; ***************************************************
+
+;; a.)
+;; (make-adder n) adds [n] to another given value [m]
+;;    and produces the sum.
+
+;; Examples:
+(check-expect ((make-adder 3) 4) 7)
+(check-expect ((make-adder 3.9) 4.3) 8.2)
+
+;; make-adder: Num -> Num
+(define (make-adder n)
+  (lambda (m) (+ m n)))
+
+;; Tests:
+(check-expect ((make-adder 5/7) 1/7) 6/7)
+(check-expect ((make-adder 15) 190) 205)
+(check-expect ((make-adder 3.5) 4) 7.5)
+
+
+;; b.)
+
+

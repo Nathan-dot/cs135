@@ -1,0 +1,245 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a05q05) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 05, Problem 4
+;; ***************************************************
+
+;; Accessor Functions:
+(define (r-qnum response) (first response))
+(define (r-ans response) (second response))
+
+;; a.)
+;; A Ranked-List is a (listof Sym) that may include the symbol 'sentinel, which can appear anywhere
+;;   in the list and indicates a stopping point where only elements before 'sentinel should be
+;;   considered.
+;;   Requires: The given list cannot contain duplicates.
+
+;; A QuestionNum is an Int value
+;;   Requires: The value must be 1 or larger
+
+;; An Answer is (anyof Bool Str Int Ranked-List)
+
+;; A Response is a (list QuestionNum Answer)
+
+
+;; b.)
+;; (response-similarity response1 response2) produces the similarity of
+;;    the two Response [response1] and [response2], which is measured by
+;;    a number between 0 and 1 (inclusive).
+
+;; Examples:
+(check-expect (response-similarity 
+               (list 2 (list 'sports 'games 'photo 'sentinel 'cooking))
+               (list 2 (list 'sports 'photo 'sentinel 'cooking 'games)))
+              (/ (+ 3 2 1 1) (+ (+ 3 2 1) (+ 2 1)))) 
+(check-expect (response-similarity (list 3 true) (list 3 "help")) 0)
+(check-expect (response-similarity (list 3 "help") (list 3 "help")) 1)
+
+;; response-similarity: Response Response -> Num
+(define (response-similarity response1 response2)
+  (cond [(and (response-qnum-similar response1 response2)
+              (response-ans-similar response1 response2)) 1]
+        [(and (list? (second response1)) (list? (second response2)) 
+              (and (= (length (sentinel-check (second response1)))
+                      (length (sentinel-check (second response2))))
+                   (not (= (length (sentinel-check (second response1))) 0)))
+                   (same-list? (sentinel-check (second response1))
+                               (sentinel-check (second response2)))) 1]
+        [(and (list? (second response1)) (list? (second response2)))
+         (sentinel-similarity (second response1) (second response2))]
+        [else 0]))
+
+;; Tests:
+(check-expect (response-similarity (list 3 true) (list 3 true)) 1)
+(check-expect (response-similarity (list 3 false) (list 3 true)) 0)
+(check-expect (response-similarity (list 2 "help") (list 3 "help")) 0)
+(check-expect (response-similarity (list 3 "help") (list 3 "halp")) 0)
+(check-expect (response-similarity (list 3 5) (list 3 5)) 1)
+(check-expect (response-similarity (list 3 0) (list 3 1)) 0)
+
+(check-expect (response-similarity (list 4 (list )) (list 4 (list ))) 0) 
+(check-expect (response-similarity (list 4 (list 'sentinel)) (list 4 (list 'sentinel))) 0) 
+(check-expect (response-similarity (list 4 (list 'test 'broke)) (list 4 (list ))) 0)
+(check-expect (response-similarity (list 4 (list )) (list 4 (list 'test 'broke))) 0)
+(check-expect (response-similarity (list 4 (list 'test 'broke)) (list 4 (list 'broke)))
+              (/ (+ 1 1) (+ 2 1 1)))
+(check-expect (response-similarity (list 4 (list 'test 'sentinel 'broke))
+                                   (list 4 (list 'broke))) 0)
+(check-expect (response-similarity (list 4 (list 'sentinel 'test 'broke))
+                                   (list 4 (list 'broke))) 0)
+(check-expect (response-similarity (list 4 (list 'test 'broke))
+                                   (list 4 (list 'test 'broke))) 1)
+(check-expect (response-similarity (list 4 (list 'sentinel 'test 'broke))
+                                   (list 4 (list 'test 'broke))) 0)
+(check-expect (response-similarity (list 4 (list 'test 'sentinel 'broke))
+                                   (list 4 (list 'test 'broke))) (/ (+ 1 2) (+ 1 2 1)))
+(check-expect (response-similarity (list 4 (list 'test 'broke))
+                                   (list 4 (list 'test 'a 'b 'c 'd 'e 'f 'g 'h 'i 'broke)))
+              (/ (+ 2 11 1 1) (+ 2 1 11 10 9 8 7 6 5 4 3 2 1)))
+(check-expect (response-similarity (list 4 (list 'test 'a 'b 'c 'd 'sentinel 'e 'f 'g 'h 'i 'broke))
+                                   (list 4 (list 'test 'broke)))
+              (/ (+ 2 5) (+ 2 1 5 4 3 2 1)))
+(check-expect (response-similarity (list 4 (list 'a 'b 'c)) (list 4 (list 'c 'b 'a))) 1)
+(check-expect (response-similarity (list 4 (list 'a 'b 'c)) (list 4 (list 'c 'sentinel 'a)))
+              (/ (+ 1 1) (+ 3 2 1 1)))
+
+
+;; (same-list? list1 list2) produces true if [list1] and [list2] share all their elements.
+
+;; Examples:
+(check-expect (same-list? (list 'a 'b 'c) (list 'c 'b 'a)) true)
+(check-expect (same-list? (list 'sports 'games 'photo 'sentinel 'cooking)
+            (list 'sports 'photo 'sentinel 'cooking 'games)) true)
+(check-expect (same-list? empty empty) true)
+
+;; same-list?: (listof Any) (listof Any) -> Bool
+(define (same-list? list1 list2) 
+  (cond [(empty? list1) true]
+        [else (and (member? (first list1) list2) (same-list? (rest list1) list2))]))
+
+
+;; (response-qnum-similar response1 response2) produces true if
+;;    [response1] and [response2] share identical QuestionNum values.
+;;    Otherwise, it produces false.
+
+;; Examples:
+(check-expect (response-qnum-similar (list 3 true) (list 3 true)) true)
+(check-expect (response-qnum-similar (list 2.5 false) (list 3 true)) false)
+(check-expect (response-qnum-similar (list 2 "help") (list 3 "help")) false)
+(check-expect (response-qnum-similar (list 3 "help") (list 3 "halp")) true)
+(check-expect (response-qnum-similar (list 2 5) (list 3 5)) false)
+(check-expect (response-qnum-similar (list 3 0) (list 3 1)) true)
+
+;; response-qnum-similar: Response Response -> Bool
+(define (response-qnum-similar response1 response2)
+  (cond [(= (r-qnum response1) (r-qnum response2)) true] 
+        [else false]))
+
+
+;; (response-ans-similar response1 response2) produces true if
+;;    [response1] and [response2] have identical Answer values.
+;;    Otherwise, it produces false.
+
+;; Examples:
+(check-expect (response-ans-similar (list 3 true) (list 3 true)) true) 
+(check-expect (response-ans-similar (list 2.5 false) (list 3 true)) false)
+(check-expect (response-ans-similar (list 2 "help") (list 3 "help")) true)
+(check-expect (response-ans-similar (list 3 "help") (list 3 "halp")) false)
+(check-expect (response-ans-similar (list 2 5) (list 3 5)) true)
+(check-expect (response-ans-similar (list 3 0) (list 3 1)) false) 
+
+;; response-ans-similar: Response Response -> Bool
+(define (response-ans-similar response1 response2)
+  (cond [(and (boolean? (r-ans response1)) (boolean? (r-ans response2))
+              (boolean=? (r-ans response1) (r-ans response2))) true]
+        [(and (string? (r-ans response1)) (string? (r-ans response2))
+              (string=? (string-downcase (r-ans response1))
+                        (string-downcase (r-ans response2)))) true]
+        [(and (number? (r-ans response1)) (number? (r-ans response2))
+              (= (r-ans response1) (r-ans response2))) true]
+        [else false]))
+
+
+;; (sentinel-similarity response1 response2) produces a "similarity score", which
+;;    is the ratio between the sum of values for each answer existing in both [response1]
+;;    and [response2] before the sentinel and the sum of all Answer values in both lists
+;;    occuring before the sentinel. This ratio is between 0 and 1 inclusively.
+;;    If the sentinel is the first in each list, this produces 0. 
+
+;; Examples:
+(check-expect (sentinel-similarity 
+               (list 'sports 'games 'photo 'sentinel 'cooking)
+               (list 'sports 'photo 'sentinel 'cooking 'games))
+              (/ (+ 3 2 1 1) (+ (+ 3 2 1) (+ 2 1))))
+(check-expect (sentinel-similarity 
+               (list 'games 'sports 'photo 'sentinel 'cooking)
+               (list 'sports 'photo 'sentinel 'cooking 'games))
+              (/ 2 3))
+
+;; sentinel-similarity: Ranked-List Ranked-List -> Num
+(define (sentinel-similarity response1 response2)
+  (cond [(= (+ (sum-before-sentinel (sentinel-check response2))
+               (sum-before-sentinel (sentinel-check response1))) 0) 0]
+        [(> (length (sentinel-check response1)) (length (sentinel-check response2)))
+         (/ (compare/response (sentinel-check response2) (sentinel-check response1))
+            (+ (sum-before-sentinel (sentinel-check response2))
+               (sum-before-sentinel (sentinel-check response1))))]  
+        [else (/ (compare/response (sentinel-check response1)
+                                   (sentinel-check response2))
+                 (+ (sum-before-sentinel (sentinel-check response1))
+                    (sum-before-sentinel (sentinel-check response2))))]))   
+ 
+
+;; (sentinel-check response) crops the given [response] so that
+;;    only the elements before the sentinel remain.
+
+;; Examples:
+(check-expect (sentinel-check (r-ans (list 2 (list 'sports 'games 'photo 'sentinel 'cooking))))
+              (list 'sports 'games 'photo))
+(check-expect (sentinel-check (r-ans (list 2 (list 'sentinel 'games 'photo 'cooking))))
+              empty)
+
+;; sentinel-check: Ranked-List -> Ranked-List
+(define (sentinel-check response)
+  (cond [(empty? response) empty]
+        [(symbol=? (first response) 'sentinel) empty] 
+        [else (cons (first response) (sentinel-check (rest response)))]))
+
+
+;; (compare response1 response2 count1 count) produces the sum of the first answer
+;;   that appears both in [response1] and [response2]. The value of each answer in the list
+;;   is defined as the distance from end of the list. For example in (list 'sports 'games),
+;;   'sports has a value of 2. If the list is empty, it produces 0.
+
+;; Examples:
+(check-expect (compare (list 'sports 'games 'photo) (list 'sports 'photo) 2 3) 5)
+(check-expect (compare (list 'games 'ava) (list 'sports 'photo) 2 2) 0)
+(check-expect (compare empty empty 0 0) 0)
+
+;; compare: Ranked-List Ranked-List -> Num
+;; Requires:
+;;    (< (length response1) (length response2))
+;;    count1 = (length response1)
+;;    count2 = (length response2)
+(define (compare response1 response2 count1 count2)
+  (cond [(or (empty? response1) (empty? response2)) 0]
+        [(symbol=? (first response1) (first response2)) (+ count1 count2)]
+        [else (compare response1 (rest response2) count1 (sub1 count2))]))
+
+
+;; (compare/response response1 response2) produces the sum of all answers that appear in both
+;;    [response1] and [response2]. The value is again defined as the distance from the
+;;    end of the list. If the list is empty, it produces 0.
+
+;; Examples:
+(check-expect (compare/response (list 'sports 'photo) (list 'sports 'games 'photo)) 7)
+(check-expect (compare/response empty empty) 0)
+
+;; compare/response: Ranked-List Ranked-List -> Num
+;; Requires:
+;;    (< (length response1) (length response2))
+(define (compare/response response1 response2) 
+  (cond [(empty? response1) 0]
+        [else (+ (compare response1 response2 (length response1) (length response2))
+                 (compare (rest response1) response2 (sub1 (length response1)) (length response2)))]))
+
+
+;; (sum-before-sentinel response) produces the sum of all answer values in a list before
+;;    the sentinel term occurs.
+
+;; Examples:
+(check-expect (sum-before-sentinel empty) 0)
+(check-expect (sum-before-sentinel (list 'sports 'photo)) 3) 
+
+;; sum-before-sentinel: Ranked-List -> Nat
+;; Requires: [response] must be "cropped" so that only the elements before the sentinel remain
+(define (sum-before-sentinel response)
+  (cond [(empty? response) 0]
+        [else (+ (length response) (sum-before-sentinel (rest response)))]))
+
+
+
+

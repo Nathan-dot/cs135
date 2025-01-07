@@ -1,0 +1,43 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname a03q03) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 03, Problem 3
+;; ***************************************************
+
+;; a.)
+(define vowels
+  (cons #\a (cons #\e
+                  (cons #\i (cons #\o
+                                  (cons #\u (cons #\A
+                                                  (cons #\E (cons #\I (cons #\O
+                                                                            (cons #\U empty))))))))))) 
+
+;; list of letters that are deemed vowels for this function
+;; (devowel vowel-string) produces the consumed string [vowel-string]
+;;     with all its vowels removed.
+
+;; Example:
+(check-expect (devowel "Are you serious??") "r y srs??")
+
+;; devowel: Str -> Str
+(define (devowel vowel-string)
+  (list->string (devowel/char (string->list vowel-string))))  
+
+;; Tests:
+(check-expect (devowel "") "")
+
+;; (devowel/char char-list) produces a new list with the elements from a list
+;;     of chars [char-list], except the vowels are removed
+
+;; Example:
+(check-expect
+ (devowel/char (cons #\a (cons #\r (cons #\e empty)))) (cons #\r empty))
+
+;; devowel/char: (listof Char) -> (listof Char)
+(define (devowel/char char-list)
+  (cond [(empty? char-list) empty]
+        [(member? (first char-list) vowels) (devowel/char (rest char-list))]
+        [else (cons (first char-list) (devowel/char (rest char-list)))]))

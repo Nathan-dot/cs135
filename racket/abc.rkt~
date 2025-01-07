@@ -1,0 +1,72 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname abc) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; neighbours is nodes around the current node
+;; visited is a list of visited nodes
+#|
+(list 'eggplant (list 'potato 'pepper 'square))
+(list 'potato (list 'eggplant 'pepper 'square))
+(list 'pepper (list 'tomato 'potato 'eggplant 'square 'apple))
+(list 'square (list 'eggplant 'potato 'pepper))
+|#
+(define vegetable-plot
+  (list (list 'cauliflower (list 'broccoli))
+        (list 'broccoli (list 'cauliflower 'kale))
+        (list 'kale (list 'cabbage 'broccoli 'rapini 'turnip 'tatsoi))
+        (list 'cabbage (list 'kale))
+        (list 'rapini (list 'kale 'turnip 'tatsoi))
+        (list 'turnip (list 'kale 'rapini 'tatsoi 'kohlrabi))
+        (list 'tatsoi (list 'kale 'rapini 'turnip 'mizuna))
+        (list 'kohlrabi (list 'turnip 'cucumber))
+        (list 'cucumber (list 'kohlrabi 'watermelon 'zucchini))
+        (list 'zucchini (list 'cucumber 'watermelon))
+        (list 'watermelon (list 'cucumber 'zucchini 'cantaloupe))
+        (list 'cantaloupe (list 'watermelon 'squash))
+        (list 'squash (list 'cantaloupe 'pumpkin))
+        (list 'pumpkin (list 'squash))
+        (list 'eggplant (list 'potato 'pepper))
+        (list 'potato (list 'eggplant 'pepper))
+        (list 'pepper (list 'tomato 'potato 'eggplant))
+        (list 'tomato (list 'pepper))))
+
+(define g
+  (list (list 'eggplant (list 'potato 'pepper 'square))
+        (list 'potato (list 'eggplant 'pepper 'square))
+        (list 'pepper (list 'tomato 'potato 'eggplant 'square 'apple))
+        (list 'square (list 'eggplant 'potato 'pepper))))
+
+
+(define (find-clique k ugraph)
+  (local [(define (f1 current-clique neighbours ugraph visited)
+                  (check-clique current-clique neighbours ugraph visited))
+          
+          (define (check-clique current-clique neighbours ugraph visited)
+            (cond [(not (empty? neighbours))
+                    (f1 (cons (first neighbours) current-clique)
+                        (rest neighbours) ugraph visited)]
+                  [(or (= (length current-clique) k) (empty? neighbours))
+                   (cond [(clique? current-clique ugraph) current-clique]
+                         [else (check-clique current-clique neighbours (rest ugraph) 
+                                   (append (first ugraph) visited))])]))]       
+    (f1 empty (second (first ugraph)) ugraph empty))) 
+
+(check-expect (find-clique 4 g) (list 'eggplant 'potato 'pepper 'square)) 
+(check-expect (find-clique 3 vegetable-plot) (list 'kale 'rapini 'turnip)) 
+
+
+
+(define (clique? nodes ugraph)
+  (cond [(< (length nodes) 2) true]
+        [else (search-nodes nodes ugraph)]))
+
+(check-expect (clique? (list 'kale 'rapini 'turnip) vegetable-plot) true)
+(check-expect (clique? (list 'eggplant 'potato 'pepper 'square) g) true)
+
+(define (search-nodes nodes ugraph)
+  (cond [(empty? nodes) true]
+        [(member? (- (length nodes) 1) (map (lambda (x) 
+         (cond [(symbol=? (first nodes) (first x))
+                     (foldr + 0 (map (lambda (y) (cond [(member? y nodes) 1]
+                                            [else 0])) (second x)))]
+               [else 0])) ugraph)) (search-nodes (rest nodes) ugraph)]
+        [else false]))

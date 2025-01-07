@@ -1,0 +1,132 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname a06q02) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Nathan Kwon (20934403)
+;; CS 135 Fall 2021
+;; Assignment 06, Problem 2
+;; ***************************************************
+
+;; A Label is a Str
+  
+;; An Outcome is (anyof 'fc 'a 'b), where:
+;; 'fc (the question attempt is correct on the first try before the deadline)
+;; 'a (the question attempt is eventually correct before the deadline)
+;; or 'b (the question was not correctly answered before the deadline)
+  
+(define-struct marked-sc (label outcome))
+;; A MarkedSC is a (make-marked-sc Label Outcome)
+  
+;; A LabelList is a (listof Label)
+;; Requires: every label is unique; the list is sorted in strictly 
+;;   increasing order lexicographically 
+  
+;; A MarkedSCList is a (listof MarkedSC)
+;; Requires: each label across MarkedSCs is unique; the list is sorted in
+;;   strictly increasing order lexicographically by label
+
+;; a.)
+;; (insert-marked-sc marked-sc sc-list) produces [sc-list] with the element
+;;   [marked-sc] inserted. The element's insertion location in the list is
+;;   determined lexicographically in increasing order by each [marked-sc]'s label.
+;;   If [marked-sc] shares the same label with one already in the list, the element
+;;   is still replaced by it.
+
+;; Examples:
+(check-expect
+ (insert-marked-sc (make-marked-sc "m04_20" 'a)
+                   (list
+                    (make-marked-sc "m03_75" 'fc)
+                    (make-marked-sc "m06_53" 'a)))
+ (list
+  (make-marked-sc "m03_75" 'fc)
+  (make-marked-sc "m04_20" 'a)
+  (make-marked-sc "m06_53" 'a)))
+(check-expect (insert-marked-sc  (make-marked-sc "m03_75" 'fc) empty)
+              (list (make-marked-sc "m03_75" 'fc)))
+
+;; insert-marked-sc: MarkedSC MarkedSCList -> MarkedSCList
+(define (insert-marked-sc marked-sc sc-list)
+  (cond [(empty? sc-list) (cons marked-sc empty)]
+        [(string>? (marked-sc-label (first sc-list)) (marked-sc-label marked-sc))
+         (cons marked-sc sc-list)]
+        [(string=? (marked-sc-label (first sc-list)) (marked-sc-label marked-sc))
+         (cons marked-sc (rest sc-list))]
+        [else (cons (first sc-list) (insert-marked-sc marked-sc (rest sc-list)))]))
+
+;; Tests:
+(check-expect
+ (insert-marked-sc (make-marked-sc "m07_20" 'a)
+                   (list
+                    (make-marked-sc "m03_75" 'fc)
+                    (make-marked-sc "m06_53" 'a)))
+ (list
+  (make-marked-sc "m03_75" 'fc)
+  (make-marked-sc "m06_53" 'a)
+  (make-marked-sc "m07_20" 'a)))
+(check-expect
+ (insert-marked-sc (make-marked-sc "m06_53" 'a)
+                   (list
+                    (make-marked-sc "m03_75" 'fc)
+                    (make-marked-sc "m06_53" 'a)))
+ (list
+  (make-marked-sc "m03_75" 'fc)
+  (make-marked-sc "m06_53" 'a)))
+(check-expect
+ (insert-marked-sc (make-marked-sc "m02_20" 'a)
+                   (list
+                    (make-marked-sc "m03_75" 'fc)
+                    (make-marked-sc "m06_53" 'a)))
+ (list
+  (make-marked-sc "m02_20" 'a)
+  (make-marked-sc "m03_75" 'fc)
+  (make-marked-sc "m06_53" 'a)))
+(check-expect
+ (insert-marked-sc (make-marked-sc "m06_53" 'a)
+                   (list
+                    (make-marked-sc "m03_75" 'fc)
+                    (make-marked-sc "m06_53" 'fc)))
+ (list
+  (make-marked-sc "m03_75" 'fc)
+  (make-marked-sc "m06_53" 'a)))
+(check-expect
+ (insert-marked-sc (make-marked-sc "m06_53" 'fc)
+                   (list
+                    (make-marked-sc "m03_75" 'fc)
+                    (make-marked-sc "m06_53" 'a)))
+ (list
+  (make-marked-sc "m03_75" 'fc)
+  (make-marked-sc "m06_53" 'fc)))
+(check-expect
+ (insert-marked-sc (make-marked-sc "m07_20" 'a)
+                   (list
+                    (make-marked-sc "m03_75" 'fc)
+                    (make-marked-sc "m06_53" 'a)
+                    (make-marked-sc "m07_53" 'a)
+                    (make-marked-sc "m08_53" 'a)
+                    (make-marked-sc "m09_59" 'a)
+                    (make-marked-sc "m09_60" 'a)
+                    (make-marked-sc "m11_53" 'a)
+                    (make-marked-sc "m12_53" 'fc)
+                    (make-marked-sc "m53_53" 'fc)
+                    (make-marked-sc "m56_53" 'a)
+                    (make-marked-sc "m76_53" 'a)))
+ (list
+  (make-marked-sc "m03_75" 'fc)
+  (make-marked-sc "m06_53" 'a)
+  (make-marked-sc "m07_20" 'a)
+  (make-marked-sc "m07_53" 'a)
+  (make-marked-sc "m08_53" 'a)
+  (make-marked-sc "m09_59" 'a)
+  (make-marked-sc "m09_60" 'a)
+  (make-marked-sc "m11_53" 'a)
+  (make-marked-sc "m12_53" 'fc)
+  (make-marked-sc "m53_53" 'fc)
+  (make-marked-sc "m56_53" 'a)
+  (make-marked-sc "m76_53" 'a)))
+
+
+
+
+
+    
